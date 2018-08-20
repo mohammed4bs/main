@@ -3,8 +3,10 @@
   
     
     if(isset($_SESSION['username'])) {
+        $pageTitle = "لوحة التحكم";
         include 'init.php';
         include $tbl . 'header.php';
+        
 
     ?>
         <div class="container-fluid">

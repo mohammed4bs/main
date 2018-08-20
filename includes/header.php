@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="layout/css/bootstrap.css">
     <link rel="stylesheet" href="layout/css/main.css">
 
-    <title>aaa</title>
+    <title><?php getTitle(); ?></title>
   </head>
   <body>
     
