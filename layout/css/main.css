@@ -1,0 +1,17 @@
+.login {
+    width: 400px;
+}
+
+.login input{ 
+    width: 400px;
+    margin-top: 5px;
+}
+
+.login .form-control-lg {
+    background-color:#b79c9c;
+    color:#fff;
+}
+
+.login h2 {
+    color:#a25d74;
+}
