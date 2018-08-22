@@ -17,9 +17,10 @@
         $password = $_POST['password'];
         
 
-        $stmt = $db->prepare('SELECT username, password FROM users WHERE username = ? AND password = ? AND group_id = 1');
+        $stmt = $db->prepare('SELECT user_id, username, password FROM users WHERE username = ? AND password = ? AND group_id = 1 LIMIT 1');
         $stmt->execute(array($username , $password));
         $row = $stmt->rowCount();
+        
         
         if ($row > 0 ) {
             $_SESSION['username'] = $username;
