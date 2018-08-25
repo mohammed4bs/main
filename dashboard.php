@@ -14,24 +14,8 @@
             $stmt->execute(array($client));
             $row = $stmt->rowCount();
             $data = $stmt->fetch();
-        
-
-            if ($row > 0 ) {
-                echo "Found";
-                echo "<pre>";
-                print_r($row);
-                echo "</pre>";
-            } else {
-                echo "not found";
-            }
             
-        }
-        
-
-    ?>
-      
-            <h2> مرحبا,  <?php echo $_SESSION['username']; ?></h2>
-            
+            ?>
             <div class="col-8 offset-2">
                 <div class="table-responsive-md">
                     <table class="table table-striped">
@@ -62,6 +46,17 @@
                     </table>
                 </div>
             </div>
+            <?php
+
+            
+        }
+        
+
+    ?>
+      
+            <h2> مرحبا,  <?php echo $_SESSION['username']; ?></h2>
+            
+            
             
         </div>
         
