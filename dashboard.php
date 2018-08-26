@@ -6,7 +6,50 @@
         include 'init.php';
         include $tbl . 'header.php';
         ?>
-        <div class="container-fluid">
+        <div class="container">
+            <h1 class="page-title text-center"> لوحة التحكم الرئيسية </h1>
+            <div class="main-items">
+                <div class="row">
+                    <div class="col-3">
+                        <div class="card text-white bg-secondary mb-3" style="max-width: 18rem;">
+                            <div class="card-header">Header</div>
+                            <div class="card-body">
+                                <h5 class="card-title">Secondary card title</h5>
+                                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                            </div>
+                        </div>  
+                    </div>
+                    <div class="col-3">
+                        <div class="card text-white bg-warning mb-3" style="max-width: 18rem;">
+                            <div class="card-header">Header</div>
+                            <div class="card-body">
+                                <h5 class="card-title">Secondary card title</h5>
+                                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                            </div>
+                        </div>  
+                    </div>
+                    <div class="col-3">
+                        <div class="card text-white bg-danger  mb-3" style="max-width: 18rem;">
+                            <div class="card-header">Header</div>
+                            <div class="card-body">
+                                <h5 class="card-title">Secondary card title</h5>
+                                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                            </div>
+                        </div>  
+                    </div>
+                    <div class="col-3">
+                        <div class="card text-white bg-secondary mb-3" style="max-width: 18rem;">
+                            <div class="card-header">Header</div>
+                            <div class="card-body">
+                                <h5 class="card-title">Secondary card title</h5>
+                                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                            </div>
+                        </div>  
+                    </div>
+
+                </div>
+            </div>
+
         <?php
         if (isset($_GET['client'])) {
             $client = $_GET['client'];

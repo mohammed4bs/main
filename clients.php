@@ -40,8 +40,8 @@ if (isset($_SESSION['username'])) {
         echo '<h1 class="page-title text-center"> عملاء الريف الاوروبي </h1>';
         
         ?>
-        <table class="table table-striped table-hover">
-            <thead>
+        <table class="table table-striped table-hover ">
+            <thead class="thead-dark">
                 <tr>
                     <th>
                         ID
