@@ -28,8 +28,8 @@
             </li> -->
         </ul>
         <form class="form-inline my-2 my-lg-0" action="dashboard.php" method="GET">
-            <input class="form-control mr-sm-2" type="text" name="client" placeholder="بحث عن عميل" aria-label="Search">
-        <button class="btn btn-outline-success my-2 my-sm-0" type="submit">بحث</button>
+            <input class="form-control mr-sm-2 client_search" type="text" name="client" placeholder="بحث عن عميل" aria-label="Search">
+        <button class="btn btn-outline-success mr-auto my-2 my-sm-0" type="submit">بحث</button>
         </form>
         <div class="dropdown">
             <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

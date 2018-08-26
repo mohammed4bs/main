@@ -53,10 +53,11 @@
         <?php
         if (isset($_GET['client'])) {
             $client = $_GET['client'];
-            $stmt = $db->prepare('SELECT client_id, client_name,phone,email,address FROM clients WHERE client_name = ?');
-            $stmt->execute(array($client));
+            $stmt = $db->prepare('SELECT * FROM clients WHERE client_name like ? OR client_id like ?');
+            $stmt->execute(array('%' . $client . '%' , '%' . $client . '%' ));
             $row = $stmt->rowCount();
-            $data = $stmt->fetch();
+            $data = $stmt->fetchAll();
+            print_r($row);
             
             ?>
             <div class="col-8 offset-2">
@@ -83,7 +84,10 @@
                         <tbody>
                         
                         <?php 
-                            echo "<tr><td>" . $data['client_name'] . "</td><td>" . $data['phone'] ."</td><td>" . $data['email'] . "</td><td>" . $data['address'] . "</td></tr>";
+                            foreach ($data as $r) {
+                                echo "<tr><td>" . $r['client_name'] . "</td><td>" . $r['phone'] ."</td><td>" . $r['email'] . "</td><td>" . $r['address'] . "</td></tr>";
+                            }
+                            
                         ?>
                         </tbody>
                     </table>
