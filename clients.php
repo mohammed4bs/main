@@ -4,7 +4,7 @@ session_start();
 // Check if there's a session with the user name============================
 if (isset($_SESSION['username'])) {
     include 'init.php';
-
+    echo '<div class="container">';
     // check if thers's an action if not go to manage clients=================================
     if (isset($_GET['action'])) {
         $action = $_GET['action'];
@@ -18,7 +18,7 @@ if (isset($_SESSION['username'])) {
             $pageTitle = "العملاء";
         
         // Get all Clients==================================================
-        $limit = 2; // rows per page limit ----------------------------
+        $limit = 4; // rows per page limit ----------------------------
         $stmt = $db->prepare("SELECT * FROM clients");
         $stmt->execute();
         //$rows = $stmt->fetchAll();
@@ -36,7 +36,7 @@ if (isset($_SESSION['username'])) {
         $show = "SELECT * FROM clients ORDER BY client_id ASC LIMIT $starting_limit, $limit";
         $rows = $db->prepare($show);
         $rows->execute();
-        echo '<div class="container">';
+        
         echo '<h1 class="page-title text-center"> عملاء الريف الاوروبي </h1>';
         
         ?>
@@ -81,26 +81,83 @@ if (isset($_SESSION['username'])) {
         </table>
         <nav aria-label="Page navigation example">
             <ul class="pagination">
+            <?php $past_page = $_GET['page'] - 1;
+                if ($past_page < 1) {
+                    $past_page = 1;
+                    $past_page_status = 'disabled';
+                }    
+            ?>
+                <li class="page-item <?php echo $past_page_status; ?>">
+                    <a href='<?php echo "?page=$past_page"; ?>' class="page-link">السابق
+                    </a>
+                </li>
                 <?php
                 for ($page=1; $page <= $total_pages ; $page++):?>
                 <li class="page-item">
-                    <a href='<?php echo "?page=$page"; ?>' class="page-link"><?php  echo $page; ?>
+                    <a href='<?php echo "?page=$page"; ?>' class="page-link <?php if ($_GET['page'] == $page) { echo 'current';} ?>"><?php  echo $page; ?>
                     </a>
                 </li>
+
           
             <?php endfor; ?>
+            <?php $next_page = $_GET['page'] + 1;
+                  $status = '';
+                if ($next_page > $total_pages) {
+                    $next_page = $_GET['page'];
+                    $next_page_status = 'disabled';
+
+                }    
+            ?>
+                <li class="page-item  <?php echo $next_page_status; ?>"> <!-- this for disableing the next button when last page occured -->
+                    <a href='<?php echo "?page=$next_page"; ?>' class="page-link">التالي
+                    </a>
+                </li>
             </ul>
         </nav>
 
-        <form action="clients.php?action=Add">
-            <input type="submit" class="btn btn-outline-dark btn-lg" value="إضافة عميل جديد">
-        </form>
+        
+        <a href="?action=Add" class="btn btn-outline-dark btn-lg">إضافة عميل جديد</a>
+        
         <?php
-        echo '</div>';
+        
 
         include $tbl . 'footer.php';
-        } elseif ($action == 'Add') {
+        } elseif ($action == 'Add') {?>
+            <h1 class="page-title text-center"> إضافة عميل جديد </h1>
+            <form action="?action=Insert" method="POST">
+                <div class="row">
+                    <div class="form-group col-6">
+                        <label class="col-form-label col-4"> إسم العميل</label>
+                        <input type="text" class="form-control-lg col-8" name='client_name' required  />
+                    </div>
+                    <div class="form-group col-6">
+                        <label class="col-form-label col-4"> تليفون العميل</label>
+                        <input type="text" class="form-control-lg col-8" name='phone' required  />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-6">
+                        <label class="col-form-label col-4"> الايميل</label>
+                        <input type="email" class="form-control-lg col-8" name='email' required />
+                    </div>
+                    <div class="form-group col-6">
+                        <label class="col-form-label col-4"> العنوان</label>
+                        <input type="text" class="form-control-lg col-8" name='address'  required />
+                    </div>
+                </div>
+                <div class="form-group">
+                    
+                    <input type="submit" class="btn btn-lg btn-outline-secondary" value="حفظ" />
+                </div>
+            </form>
+            <?php
             
+            
+        } elseif ($action == 'Edit') {
+            $pageTitle = "تعديل بيانات عميل";
+            echo 'welcome to Edit page';
+        } elseif ($action == 'Insert') {
+
             if($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $pageTitle = "إضافة عميل جديد";
                 $client_name = $_POST['client_name'];
@@ -114,25 +171,15 @@ if (isset($_SESSION['username'])) {
                     'phone' => $phone,
                     'email' => $email,
                     'address' => $address));
+            } else {
+                header('Location: clients.php');
+                exit();
             }
-            ?>
-            <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="POST">
-                <input type="text" class="form-control-lg" name='client_name' placeholder="أسم العميل"  />
-                <input type="text" class="form-control-lg" name='phone' placeholder="تليفون العميل"  />
-                <input type="email" class="form-control-lg" name='email' placeholder="الايميل"  />
-                <input type="text" class="form-control-lg" name='address' placeholder="العنوان"  />
-                <input type="submit" class="btn btn-outline-secondary" value="حفظ" />
-            </form>
-            <?php
             
-            echo 'welcome to Add Page';
-        } elseif ($action == 'Edit') {
-            $pageTitle = "تعديل بيانات عميل";
-            echo 'welcome to Edit page';
         }
-    
+        echo '</div>';
     
 } else {
     header('Location: index.php');
     exit();
-}
+}?>

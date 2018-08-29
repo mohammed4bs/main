@@ -27,6 +27,10 @@
     width:400px;
 }
 
+.current {
+    background-color: black;
+    color: #fff;
+}
 
 /* ================================== Dashboard ====================================== */
 
