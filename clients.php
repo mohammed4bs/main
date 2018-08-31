@@ -70,7 +70,7 @@ if (isset($_SESSION['username'])) {
                     foreach($rows as $row) {
                         echo '<tr>';
                             echo '<td>' . $row['client_id'] .  '</td><td>' . $row['client_name'] . '</td><td>' . $row['phone'] . '</td><td>' . $row['email'] . '</td><td>' . $row['address'] . '</td>
-                            <td><a href="#" class="btn btn-outline-info">تعديل</a><a href="#" class="btn btn-danger"> حذف</a></td>';
+                            <td><a href="?action=Edit&id=' . $row['client_id'] . '" class="btn btn-outline-info">تعديل</a><a href="?action=Delete&id=' . $row['client_id'] . '" class="btn btn-danger confirm"> حذف</a></td>';
 
                         echo '</tr>';
                     }
@@ -152,10 +152,66 @@ if (isset($_SESSION['username'])) {
             </form>
             <?php
             
-            
+        // Edit Page Start ===================================================================================================================
         } elseif ($action == 'Edit') {
             $pageTitle = "تعديل بيانات عميل";
-            echo 'welcome to Edit page';
+            $id = $_GET['id']; 
+            $stmt = $db->prepare("SELECT * FROM clients WHERE client_id = :zid");
+            $stmt->bindParam(":zid", $id);
+            $stmt->execute();
+            $row = $stmt->fetch();
+            //print_r($row);
+            ?>
+            <h1 class="page-title text-center"> تعديل بيانات عميل </h1>
+            <form action="?action=Update&id=<?php echo $id; ?>" method="POST">
+                <div class="row">
+                    <div class="form-group col-6">
+                        <label class="col-form-label col-4"> إسم العميل</label>
+                        <input type="text" class="form-control-lg col-8" name='client_name' value="<?php echo $row['client_name']; ?>" required  />
+                    </div>
+                    <div class="form-group col-6">
+                        <label class="col-form-label col-4"> تليفون العميل</label>
+                        <input type="text" class="form-control-lg col-8" name='phone' value="<?php echo $row['phone']; ?>" required  />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-6">
+                        <label class="col-form-label col-4"> الايميل</label>
+                        <input type="email" class="form-control-lg col-8" name='email' value="<?php echo $row['email']; ?>" required />
+                    </div>
+                    <div class="form-group col-6">
+                        <label class="col-form-label col-4"> العنوان</label>
+                        <input type="text" class="form-control-lg col-8" name='address' value="<?php echo $row['address']; ?>"  required />
+                    </div>
+                </div>
+                <div class="form-group">
+                    
+                    <input type="submit" class="btn btn-lg btn-outline-secondary" value="حفظ" />
+                </div>
+            </form>
+            <?php
+        // Edit Page End ====================================================================================================================
+        // Update Page Start ====================================================================================================================
+        } elseif ($action == 'Update') {
+            if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+                echo '<h1 class="page-title text-center"> تعديل بيانات عميل </h1>';
+
+                $id = $_GET['id'];
+                $client_name = $_POST['client_name'];
+                $phone = $_POST['phone'];
+                $email = $_POST['email'];
+                $address = $_POST['address'];
+
+                $stmt = $db->prepare('UPDATE clients SET client_name = ? , phone = ? , email = ? , address = ? WHERE client_id = '. $id);
+                $stmt->execute(array($client_name , $phone, $email , $address));
+                echo '<div class="alert alert-success" role="alret"> تم حفظ بيانات' . $stmt->rowCount() . 'عميل جديد</div>';
+                echo '<a href="clients.php?page=1" class=" btn btn-group-vertical"> رجوع الي صفحة العملاء</a>';
+                
+            } else {
+                echo 'You can\'t browse this page directly';
+            }
+        // Update Page End ====================================================================================================================
+        // Insert Page Start ====================================================================================================================
         } elseif ($action == 'Insert') {
 
             if($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -171,12 +227,31 @@ if (isset($_SESSION['username'])) {
                     'phone' => $phone,
                     'email' => $email,
                     'address' => $address));
+                echo '<h1 class="page-title text-center"> تم الحفظ </h1>';
+                echo '<div class="alert alert-success" role="alret"> تم حفظ بيانات' . $stmt->rowCount() . 'عميل جديد</div>';
+                echo '<a href="clients.php?page=1" class=" btn btn-group-vertical"> رجوع الي صفحة العملاء</a>';
             } else {
                 header('Location: clients.php');
                 exit();
             }
             
+        } elseif ($action == 'Delete') {
+            $id = $_GET['id']; 
+            $stmt = $db->prepare("SELECT * FROM clients WHERE client_id = :zid");
+            $stmt->bindParam(":zid", $id);
+            $stmt->execute();
+            $count = $stmt->rowCount();
+
+            if ($count > 0) {
+                $stmt = $db->prepare('DELETE FROM clients WHERE client_id = :zid');
+                $stmt->bindParam(":zid", $id);
+                $stmt->execute();
+                echo '<h1 class="page-title text-center">تم الحذف</h1>';
+                echo '<div class="alert alert-success" role="alret"> تم حذف بيانات' . $stmt->rowCount() . 'عميل </div>';
+                echo '<a href="clients.php?page=1" class=" btn btn-group-vertical"> رجوع الي صفحة العملاء</a>';
+            }
         }
+        // Insert Page End ====================================================================================================================
         echo '</div>';
     
 } else {
