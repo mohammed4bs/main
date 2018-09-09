@@ -33,8 +33,17 @@ if (isset($_SESSION['username'])) {
         //City option list
         if($rowCount > 0){
             echo '<option value="">اختر القطعة</option>';
+            
             foreach ($units as $unit) {
-                echo '<option value="'.$unit['unit_id'].'">'.$unit['unit_name'].'</option>';
+                $stmt = $db->prepare('SELECT * FROM contract_units WHERE unit_id = ?');
+                $stmt->execute(array($unit['unit_id']));
+                $count = $stmt->rowCount();
+                if($count > 0) { 
+                    echo '<option disabled  value="'.$unit['unit_id'].'">'.$unit['unit_name'].'</option>';
+                } else {
+                    echo '<option  value="'.$unit['unit_id'].'">'.$unit['unit_name'].'</option>';
+                }
+            
             }
         }else{
             echo '<option value="">لا توجد قطع </option>';
