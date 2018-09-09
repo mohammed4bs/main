@@ -4,3 +4,23 @@ FOREIGN KEY(company_id)
 REFERENCES company(company_id)
 ON UPDATE CASCADE
 ON DELETE CASCADE
+
+
+
+
+
+
+What you describe sounds like a "many to many" relationship. One order can hold many products but one product can be part of many rows as well.
+
+For this you can create a table orders (in which additional info may be stored, eg. the userid it belongs to) and have your products table as well.
+
+Now you connect them via something like this
+
+CREATE TABLE order_products (
+    orderid INT NOT NULL,
+    productid INT NOT NULL,
+    quantity INT NOT NULL,
+    PRIMARY KEY (orderid, productid),
+    FOREIGN KEY (orderid) REFERENCES orders (id),
+    FOREIGN KEY (productid) REFERENCES products (id)
+);
