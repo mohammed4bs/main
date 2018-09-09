@@ -128,21 +128,21 @@ if (isset($_SESSION['username'])) {
                 <div class="row">
                     <div class="form-group col-6">
                         <label class="col-form-label col-4"> إسم العميل</label>
-                        <input type="text" class="form-control-lg col-8" name='client_name' required  />
+                        <input type="text" class="form-control col-8" name='client_name' required  />
                     </div>
                     <div class="form-group col-6">
                         <label class="col-form-label col-4"> تليفون العميل</label>
-                        <input type="text" class="form-control-lg col-8" name='phone' required  />
+                        <input type="text" class="form-control col-8" name='phone' required  />
                     </div>
                 </div>
                 <div class="row">
                     <div class="form-group col-6">
                         <label class="col-form-label col-4"> الايميل</label>
-                        <input type="email" class="form-control-lg col-8" name='email' required />
+                        <input type="email" class="form-control col-8" name='email' required />
                     </div>
                     <div class="form-group col-6">
                         <label class="col-form-label col-4"> العنوان</label>
-                        <input type="text" class="form-control-lg col-8" name='address'  required />
+                        <input type="text" class="form-control col-8" name='address'  required />
                     </div>
                 </div>
                 <div class="form-group">
@@ -167,21 +167,21 @@ if (isset($_SESSION['username'])) {
                 <div class="row">
                     <div class="form-group col-6">
                         <label class="col-form-label col-4"> إسم العميل</label>
-                        <input type="text" class="form-control-lg col-8" name='client_name' value="<?php echo $row['client_name']; ?>" required  />
+                        <input type="text" class="form-control col-8" name='client_name' value="<?php echo $row['client_name']; ?>" required  />
                     </div>
                     <div class="form-group col-6">
                         <label class="col-form-label col-4"> تليفون العميل</label>
-                        <input type="text" class="form-control-lg col-8" name='phone' value="<?php echo $row['phone']; ?>" required  />
+                        <input type="text" class="form-control col-8" name='phone' value="<?php echo $row['phone']; ?>" required  />
                     </div>
                 </div>
                 <div class="row">
                     <div class="form-group col-6">
                         <label class="col-form-label col-4"> الايميل</label>
-                        <input type="email" class="form-control-lg col-8" name='email' value="<?php echo $row['email']; ?>" required />
+                        <input type="email" class="form-control col-8" name='email' value="<?php echo $row['email']; ?>" required />
                     </div>
                     <div class="form-group col-6">
                         <label class="col-form-label col-4"> العنوان</label>
-                        <input type="text" class="form-control-lg col-8" name='address' value="<?php echo $row['address']; ?>"  required />
+                        <input type="text" class="form-control col-8" name='address' value="<?php echo $row['address']; ?>"  required />
                     </div>
                 </div>
                 <div class="form-group">
