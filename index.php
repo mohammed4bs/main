@@ -35,9 +35,9 @@
         <div class="col-md-4 offset-4">
             
             <form class="login form-group" action="<?php echo $_SERVER['PHP_SELF'] ?>" method="POST">
-                <h2 class="text-center">تسجيل الدخول</h2>
-                <input class="form-control-lg" type="text" name="username" placeholder="اسم المستخدم" autocomplete="off"/><br/>
-                <input class="form-control-lg" type="password" name="password" placeholder="كلمة السر" autocomplete="new-password"/><br />
+                <h2 class="text-center" >تسجيل الدخول</h2>
+                <input class="form-control" type="text" name="username" placeholder="اسم المستخدم" autocomplete="off"/><br/>
+                <input class="form-control" type="password" name="password" placeholder="كلمة السر" autocomplete="new-password"/><br />
                 <input class="btn btn-lg btn-dark btn-block" type="submit" value="تسجيل الدخول" />
             </form>
         </div>
