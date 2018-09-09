@@ -13,7 +13,16 @@
                 <a class="nav-link" href="clients.php?page=1">العملاء</a>
             </li>
             <li class="nav-item">
+                <a class="nav-link" href="company.php?page=1">الشركات</a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link" href="reefs.php?page=1">الأرياف</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="units.php?page=1">الاراضي</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="contracts.php?page=1">العقود</a>
             </li>
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
