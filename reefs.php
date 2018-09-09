@@ -5,7 +5,7 @@ session_start();
 if (isset($_SESSION['username'])) {
     include 'init.php';
     echo '<div class="container">';
-    // check if thers's an action if not go to manage clients=================================
+    // check if thers's an action if not go to manage reefs=================================
     if (isset($_GET['action'])) {
         $action = $_GET['action'];
     } else {
@@ -17,7 +17,7 @@ if (isset($_SESSION['username'])) {
 
             $pageTitle = "الارياف";
         
-        // Get all Clients==================================================
+        // Get all reefs==================================================
         $limit = 4; // rows per page limit ----------------------------
         $stmt = $db->prepare("SELECT * FROM reefs");
         $stmt->execute();
@@ -50,6 +50,9 @@ if (isset($_SESSION['username'])) {
                         اسم الريف
                     </th>
                     <th>
+                        اسم الشركة
+                    </th>
+                    <th>
                         حذف أو تعديل
                     </th>
 
@@ -58,10 +61,14 @@ if (isset($_SESSION['username'])) {
             </thead>
             <tbody>
                 <?php
+                    
                     foreach($rows as $row) {
+                        $stmt = $db->prepare('SELECT * FROM company WHERE company_id = ? LIMIT 1');
+                        $stmt->execute(array($row['company_id']));
+                        $company = $stmt->fetch();
                         echo '<tr>';
-                            echo '<td>' . $row['reef_id'] .  '</td><td>' . $row['reef_name'] . 
-                            '<td><a href="?action=Edit&id=' . $row['client_id'] . '" class="btn btn-outline-info">تعديل</a><a href="?action=Delete&id=' . $row['client_id'] . '" class="btn btn-danger confirm"> حذف</a></td>';
+                            echo '<td>' . $row['reef_id'] .  '</td><td>' . $row['reef_name'] . '</td><td>' . $company['company_name'] .
+                            '</td><td><a href="?action=Edit&id=' . $row['reef_id'] . '" class="btn btn-outline-info">تعديل</a><a href="?action=Delete&id=' . $row['reef_id'] . '" class="btn btn-danger confirm"> حذف</a></td>';
 
                         echo '</tr>';
                     }
@@ -120,7 +127,24 @@ if (isset($_SESSION['username'])) {
                 <div class="row">
                     <div class="form-group col-6">
                         <label class="col-form-label col-4"> إسم الريف</label>
-                        <input type="text" class="form-control-lg col-8" name='reef_name' required  />
+                        <input type="text" class="form-control col-8" name='reef_name' required  />
+                    </div>
+                    <div class="form-group col-6">
+                        <label class="col-form-label col-4"> إسم الشركة</label>
+                        <select class="custom-select" name="company_id">
+                            <option selected>اختر شركة</option>
+                        
+                        
+                        
+                            <?php $stmt = $db->prepare('SELECT * FROM company');
+                              $stmt->execute();
+                              $companies = $stmt->fetchAll();  
+                              
+                              foreach ($companies as $company) {
+                                  echo '<option value="' . $company['company_id'] . '">' . $company['company_name'] . '</option>';
+                              }
+                              ?>
+                        </select>
                     </div>
                 </div>
                 
@@ -133,7 +157,7 @@ if (isset($_SESSION['username'])) {
             
         // Edit Page Start ===================================================================================================================
         } elseif ($action == 'Edit') {
-            $pageTitle = "تعديل بيانات عميل";
+            $pageTitle = "تعديل بيانات ريف";
             $id = $_GET['id']; 
             $stmt = $db->prepare("SELECT * FROM reefs WHERE reef_id = :zid");
             $stmt->bindParam(":zid", $id);
@@ -141,14 +165,33 @@ if (isset($_SESSION['username'])) {
             $row = $stmt->fetch();
             //print_r($row);
             ?>
-            <h1 class="page-title text-center"> تعديل بيانات عميل </h1>
+            <h1 class="page-title text-center"> تعديل بيانات ريف </h1>
             <form action="?action=Update&id=<?php echo $id; ?>" method="POST">
                 <div class="row">
                     <div class="form-group col-6">
                         <label class="col-form-label col-4"> إسم الريف</label>
-                        <input type="text" class="form-control-lg col-8" name='reef_name' value="<?php echo $row['reef_name']; ?>" required  />
+                        <input type="text" class="form-control col-8" name='reef_name' value="<?php echo $row['reef_name']; ?>" required  />
                     </div>
-                    
+                    <div class="form-group col-6">
+                        <label class="col-form-label col-4"> إسم الشركة</label>
+                        <select class="custom-select" name="company_id">
+                        <?php $stmt = $db->prepare('SELECT * FROM company WHERE company_id = ? LIMIT 1');
+                              $stmt->execute(array($row['company_id']));
+                              $company = $stmt->fetch();  ?>
+                            <option value='<?php $row['company_id'] ?>' selected><?php echo $company['company_name'];  ?> </option>
+                        
+                        
+                        
+                            <?php $stmt = $db->prepare('SELECT * FROM company');
+                              $stmt->execute();
+                              $companies = $stmt->fetchAll();  
+                              
+                              foreach ($companies as $company) {
+                                  echo '<option value="' . $company['company_id'] . '">' . $company['company_name'] . '</option>';
+                              }
+                              ?>
+                        </select>
+                    </div>
                 </div>
             
                 <div class="form-group">
@@ -161,16 +204,17 @@ if (isset($_SESSION['username'])) {
         // Update Page Start ====================================================================================================================
         } elseif ($action == 'Update') {
             if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-                echo '<h1 class="page-title text-center"> تعديل بيانات عميل </h1>';
+                echo '<h1 class="page-title text-center"> تعديل بيانات ريف </h1>';
 
                 $id = $_GET['id'];
                 $reef_name = $_POST['reef_name'];
+                $company_id = $_POST['company_id'];
                 
 
-                $stmt = $db->prepare('UPDATE reefs SET reef_name = ? WHERE client_id = '. $id);
-                $stmt->execute(array($reef_name));
+                $stmt = $db->prepare('UPDATE reefs SET reef_name = ? , company_id = ? WHERE reef_id = '. $id);
+                $stmt->execute(array($reef_name,$company_id));
                 echo '<div class="alert alert-success" role="alret"> تم حفظ بيانات' . $stmt->rowCount() . 'ريف جديد</div>';
-                echo '<a href="clients.php?page=1" class=" btn btn-group-vertical"> رجوع الي صفحة الأرياف</a>';
+                echo '<a href="reefs.php?page=1" class=" btn btn-group-vertical"> رجوع الي صفحة الأرياف</a>';
                 
             } else {
                 echo 'You can\'t browse this page directly';
@@ -180,40 +224,38 @@ if (isset($_SESSION['username'])) {
         } elseif ($action == 'Insert') {
 
             if($_SERVER['REQUEST_METHOD'] == 'POST') {
-                $pageTitle = "إضافة عميل جديد";
+                $pageTitle = "إضافة ريف جديد";
                 $reef_name = $_POST['reef_name'];
-                $phone = $_POST['phone'];
-                $email = $_POST['email'];
-                $address = $_POST['address'];
+                $company_id = $_POST['company_id'];
+               
 
-                $stmt = $db->prepare('INSERT INTO clients (reef_name,phone,email,address) values (:client , :phone, :email ,:address)');
+                $stmt = $db->prepare('INSERT INTO reefs (reef_name,company_id) values (:reef_name , :company_id)');
                 $stmt->execute(array(
-                    'client' => $reef_name,
-                    'phone' => $phone,
-                    'email' => $email,
-                    'address' => $address));
+                    ':reef_name' => $reef_name,
+                    ':company_id' => $company_id
+                    ));
                 echo '<h1 class="page-title text-center"> تم الحفظ </h1>';
-                echo '<div class="alert alert-success" role="alret"> تم حفظ بيانات' . $stmt->rowCount() . 'عميل جديد</div>';
-                echo '<a href="clients.php?page=1" class=" btn btn-group-vertical"> رجوع الي صفحة العملاء</a>';
+                echo '<div class="alert alert-success" role="alret"> تم حفظ بيانات' . $stmt->rowCount() . 'ريف جديد</div>';
+                echo '<a href="reefs.php?page=1" class=" btn btn-group-vertical"> رجوع الي صفحة الأرياف</a>';
             } else {
-                header('Location: clients.php');
+                header('Location: reefs.php');
                 exit();
             }
             
         } elseif ($action == 'Delete') {
             $id = $_GET['id']; 
-            $stmt = $db->prepare("SELECT * FROM clients WHERE client_id = :zid");
+            $stmt = $db->prepare("SELECT * FROM reefs WHERE reef_id = :zid");
             $stmt->bindParam(":zid", $id);
             $stmt->execute();
             $count = $stmt->rowCount();
 
             if ($count > 0) {
-                $stmt = $db->prepare('DELETE FROM clients WHERE client_id = :zid');
+                $stmt = $db->prepare('DELETE FROM reefs WHERE reef_id = :zid');
                 $stmt->bindParam(":zid", $id);
                 $stmt->execute();
                 echo '<h1 class="page-title text-center">تم الحذف</h1>';
-                echo '<div class="alert alert-success" role="alret"> تم حذف بيانات' . $stmt->rowCount() . 'عميل </div>';
-                echo '<a href="clients.php?page=1" class=" btn btn-group-vertical"> رجوع الي صفحة العملاء</a>';
+                echo '<div class="alert alert-success" role="alret"> تم حذف بيانات' . $stmt->rowCount() . 'ريف </div>';
+                echo '<a href="reefs.php?page=1" class=" btn btn-group-vertical"> رجوع الي صفحة الأرياف</a>';
             }
         }
         // Insert Page End ====================================================================================================================
