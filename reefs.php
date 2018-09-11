@@ -229,14 +229,15 @@ if (isset($_SESSION['username'])) {
                 $company_id = $_POST['company_id'];
                
 
-                $stmt = $db->prepare('INSERT INTO reefs (reef_name,company_id) values (:reef_name , :company_id)');
+                $stmt = $db->prepare('INSERT INTO reefs (company_id,reef_name) values (:company_id, :reef_name)');
                 $stmt->execute(array(
-                    ':reef_name' => $reef_name,
-                    ':company_id' => $company_id
+                    ':company_id' => $company_id,
+                    ':reef_name' => $reef_name
                     ));
                 echo '<h1 class="page-title text-center"> تم الحفظ </h1>';
                 echo '<div class="alert alert-success" role="alret"> تم حفظ بيانات' . $stmt->rowCount() . 'ريف جديد</div>';
                 echo '<a href="reefs.php?page=1" class=" btn btn-group-vertical"> رجوع الي صفحة الأرياف</a>';
+                echo '<a href="reefs.php?action=Add" class=" btn btn-light">أضف قطعة أخري   </a>';
             } else {
                 header('Location: reefs.php');
                 exit();
