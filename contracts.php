@@ -66,6 +66,9 @@ if (isset($_SESSION['username'])) {
                         التاريخ
                     </th>
                     <th>
+                        إضافة قطعة اخري
+                    </th>
+                    <th>
                         حذف أو تعديل
                     </th>
                     
@@ -97,7 +100,8 @@ if (isset($_SESSION['username'])) {
                         echo '<tr>';
                             echo '<td>' . $row['contract_id'] .  '</td><td>' . $row['description'] . '</td><td>' . $client['client_name'] .
                             '</td><td>' . $row['unit_id'] . '</td><td>' . $contract_kind  . '</td><td>' . 
-                            $total_space . '</td><td>' . $row['date'] . '</td><td><a href="?action=Edit&id=' . $row['contract_id'] . 
+                            $total_space . '</td><td>' . $row['date'] . '</td><td><a href="?action=addUnit&id=' . $row['contract_id'] . 
+                            '" class="btn btn-outline-info">إضافة قطعة</a></td><td><a href="?action=Edit&id=' . $row['contract_id'] . 
                             '" class="btn btn-outline-info">تعديل</a><a href="?action=Delete&id=' . 
                             $row['contract_id'] . '" class="btn btn-danger confirm"> حذف</a></td>';
 
@@ -288,6 +292,174 @@ if (isset($_SESSION['username'])) {
             <?php
             
         // Edit Page Start ===================================================================================================================
+        }elseif($action == 'addUnit') {
+            
+            ?>
+            <h1 class="page-title text-center"> إضافة قطعة لعقد </h1>
+            <?php
+            $id = $_GET['id'];
+            $show = "SELECT * FROM contracts WHERE contract_id = ? LIMIT 1";
+            $rows = $db->prepare($show);
+            $rows->execute(array($id));
+            $cont = $rows->fetch();
+            
+            ?>
+            <table class="table table-striped table-hover ">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>
+                            ID
+                        </th>
+                        <th>
+                            الوصف
+                        </th>
+                        <th>
+                            اسم العميل
+                        </th>
+                        
+                        <th>
+                            نوع العقد
+                        </th>
+                        <th>
+                            المساحة
+                        </th>
+                        <th>
+                            التاريخ
+                        </th>
+                        
+                        
+
+                    </tr>
+
+                </thead>
+                <tbody>
+                    <?php
+                        
+                        
+                            $stmt = $db->prepare('SELECT * FROM clients WHERE client_id = ? LIMIT 1');
+                            $stmt->execute(array($cont['client_id']));
+                            $client = $stmt->fetch();
+                            $contract_kind ='';
+                            if ($cont['contract_kind'] == '0') {
+                                $contract_kind  = 'من الشركة';
+                            } elseif ($cont['contract_kind'] == '1') {
+                                $contract_kind  = 'تنازل';
+                            }
+
+                            $stmt = $db->prepare('SELECT unit_space FROM contract_units WHERE contract_id = ?');
+                            $stmt->execute(array($cont['contract_id']));
+                            $unit_spaces = $stmt->fetchAll();
+                            $total_space = 0;
+                            foreach($unit_spaces as $space) {
+                                $total_space += $space['unit_space'];
+                            }
+                            echo '<tr>';
+                                echo '<td>' . $cont['contract_id'] .  '</td><td>' . $cont['description'] . '</td><td>' . $client['client_name'] .
+                                '</td><td>' . $contract_kind  . '</td><td>' . 
+                                $total_space . '</td><td>' . $cont['date'] . '</td>';
+
+                            echo '</tr>';
+                        
+                    ?>
+
+                </tbody>
+
+            </table>
+            <?php 
+                $url = "?action=insertUnit&id=" . $cont['contract_id']; 
+            ?>
+            <form action="<?php echo $url ?>"  method="post">
+                <div class="row">
+                    <input type="hidden" name="id" value="<?php $cont['contract_id']  ?>" />
+                    <div class="form-group col-2">
+                                <label class="col-form-label col-4">اسم الشركة</label>
+                                <select class="custom-select" id="comp" name="company_id">
+                                    <option selected>اختر شركة</option>
+                                    
+                                    <?php $stmt = $db->prepare('SELECT * FROM company');
+                                    $stmt->execute();
+                                    $companies = $stmt->fetchAll();  
+                                        
+                                    foreach ($companies as $company) {
+                                        echo '<option value="' . $company['company_id'] . '">' . $company['company_name'] . '</option>';
+                                    }
+                                    ?>
+                                </select>
+                            </div>
+                            
+                        
+                            
+                            <div class="form-group col-2">
+                            <label class="col-form-label col-4"> إسم الريف</label>
+                                <select class="custom-select" id="reef" name="reef_id">
+                                    <option selected value="">اختر ريف</option>
+                                    <?php /*$stmt = $db->prepare('SELECT * FROM reefs');
+                                    $stmt->execute();
+                                    $reefs = $stmt->fetchAll();  
+                                    
+                                    foreach ($reefs as $reef) {
+                                        echo '<option value="' . $reef['reef_id'] . '">' . $reef['reef_name'] . '</option>';
+                                    }*/
+                                    ?>
+                                </select>
+                            </div>
+                            <div class="form-group col-2">
+                                <label class="col-form-label col-4"> رقم القطعة</label>
+                                <select class="custom-select" id="unit" name="unit_id">
+                                    <option selected>اختر قطعة</option>
+                                
+                                
+                                
+                                    <?php /*$stmt = $db->prepare('SELECT * FROM units');
+                                    $stmt->execute();
+                                    $units = $stmt->fetchAll();  
+                                    
+                                    foreach ($units as $unit) {
+                                        echo '<option value="' . $unit['unit_id'] . '">' . $unit['unit_name'] . '</option>';
+                                    }*/
+                                    ?>
+                                </select>
+                            </div>
+                            <div class="form-group col-2">
+                                <label class="col-form-label col-4"> مساحة القطعة</label>
+                                <select class="custom-select" name="space">
+                                    <option selected>اختر المساحة</option>
+                                    <option value="0.5">نصف فدان</option>
+                                    <option value="1">فدان</option>
+                                </select>
+                            </div>
+                            
+                </div>
+                <div class="row">
+                    <div class="form-group col-4">
+                        <input type="submit" class="btn btn-lg btn-outline-secondary" value="حفظ" />
+                    </div>
+                </div>
+            </form>
+            <?php
+        }elseif($action == 'insertUnit') {
+            
+            if($_SERVER['REQUEST_METHOD'] == 'POST') {
+                echo 'welcome to insert unit';
+
+                $id =  $_GET['id'];
+                $unit_id = $_POST['unit_id'];
+                $space = $_POST['space'];
+                echo '<h1>' . $id . '</h1>';
+
+                $stmt = $db->prepare('INSERT INTO contract_units (contract_id,unit_id,unit_space) 
+                VALUES (:cont,:unid,:spid)');
+                $stmt->execute(array(
+                    ':cont' => $id,
+                    ':unid' => $unit_id,
+                    ':spid' => $space
+                ));
+                echo '<h1>Done</h1>';
+            } else {
+                header('Location: contracts.php?page=1');
+                exit();
+            }
+
         } elseif ($action == 'Edit') {
             $pageTitle = "تعديل بيانات عقد";
             $id = $_GET['id']; 
@@ -485,15 +657,15 @@ if (isset($_SESSION['username'])) {
                 
 
                 $stmt = $db->prepare('INSERT INTO contracts (description,client_id,
-                contract_kind , date , total_space ) values (:descr , :cid , 
-                :conknd , :dt, :tsp)');
+                contract_kind , total_space ,date  ) values (:descr , :cid , 
+                :conknd , :tsp, :dt)');
                 
                 $stmt->execute(array(
                     ':descr' => $description,
                     ':cid' => $client_id,
                     ':conknd' => $contract_kind,
-                    ':dt' => $date,
-                    ':tsp' => $total_space
+                    ':tsp' => $total_space,
+                    ':dt' => $date
                 ));
                 print $db->lastInsertId();
                 $stmtUnits = $db->prepare('INSERT INTO contract_units (contract_id, unit_id,unit_space) VALUES (:last_id,:u,:s)');
@@ -507,6 +679,7 @@ if (isset($_SESSION['username'])) {
                 echo '<h1 class="page-title text-center"> تم الحفظ </h1>';
                 echo '<div class="alert alert-success" role="alret"> تم حفظ بيانات' . $stmt->rowCount() . 'عقد جديد</div>';
                 echo '<a href="contracts.php?page=1" class=" btn btn-group-vertical"> رجوع الي صفحة العقود</a>';
+                echo '<a href="contracts.php?action=Add" class=" btn btn-secondary"> إضافة عقد آخر</a>';
             } else {
                 header('Location: contracts.php');
                 exit();
@@ -514,18 +687,18 @@ if (isset($_SESSION['username'])) {
             
         } elseif ($action == 'Delete') {
             $id = $_GET['id']; 
-            $stmt = $db->prepare("SELECT * FROM units WHERE unit_id = :zid");
+            $stmt = $db->prepare("SELECT * FROM contracts WHERE contract_id = :zid");
             $stmt->bindParam(":zid", $id);
             $stmt->execute();
             $count = $stmt->rowCount();
 
             if ($count > 0) {
-                $stmt = $db->prepare('DELETE FROM units WHERE unit_id = :zid');
+                $stmt = $db->prepare('DELETE FROM contracts WHERE contract_id = :zid');
                 $stmt->bindParam(":zid", $id);
                 $stmt->execute();
                 echo '<h1 class="page-title text-center">تم الحذف</h1>';
                 echo '<div class="alert alert-success" role="alret"> تم حذف بيانات' . $stmt->rowCount() . 'عقد </div>';
-                echo '<a href="units.php?page=1" class=" btn btn-group-vertical"> رجوع الي صفحة الأراضي</a>';
+                echo '<a href="contracts.php?page=1" class=" btn btn-group-vertical"> رجوع الي صفحة العقود</a>';
             }
         }
         // Insert Page End ====================================================================================================================
