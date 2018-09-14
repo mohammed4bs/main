@@ -93,14 +93,14 @@ if (isset($_SESSION['username'])) {
                         $stmt = $db->prepare('SELECT unit_space FROM contract_units WHERE contract_id = ?');
                         $stmt->execute(array($row['contract_id']));
                         $unit_spaces = $stmt->fetchAll();
-                        $total_space = 0;
+                        $total_space = 0.0;
                         foreach($unit_spaces as $space) {
                             $total_space += $space['unit_space'];
                         }
                         echo '<tr>';
                             echo '<td>' . $row['contract_id'] .  '</td><td>' . $row['description'] . '</td><td>' . $client['client_name'] .
                             '</td><td>' . $row['unit_id'] . '</td><td>' . $contract_kind  . '</td><td>' . 
-                            $total_space . '</td><td>' . $row['date'] . '</td><td><a href="?action=addUnit&id=' . $row['contract_id'] . 
+                            $total_space . '</td><td>' . $row['contract_date'] . '</td><td><a href="?action=addUnit&id=' . $row['contract_id'] . 
                             '" class="btn btn-outline-info">إضافة قطعة</a></td><td><a href="?action=Edit&id=' . $row['contract_id'] . 
                             '" class="btn btn-outline-info">تعديل</a><a href="?action=Delete&id=' . 
                             $row['contract_id'] . '" class="btn btn-danger confirm"> حذف</a></td>';
@@ -253,7 +253,7 @@ if (isset($_SESSION['username'])) {
                     </div>
                 </div>
                 <div class="row">
-                    <div class="form-group col-6">
+                    <div class="form-group col-4">
                         <label class="col-form-label col-4"> المساحة</label>
                         <select class="custom-select" name="space">
                             <option selected>اختر المساحة</option>
@@ -276,7 +276,12 @@ if (isset($_SESSION['username'])) {
                              
                         </select>
                     </div>
-                    <div class="form-group col-6">
+                    <div class="form-group col-4">
+                        <label class="col-form-label col-4"> الرصيد</label>
+                        
+                        <input type="text" class="form-control col-8" name="balance" />
+                    </div>
+                    <div class="form-group col-4">
                         <label class="col-form-label col-4"> التاريخ</label>
                         
                         <input type="date" class="form-control col-8" name="date" />
@@ -356,7 +361,7 @@ if (isset($_SESSION['username'])) {
                             echo '<tr>';
                                 echo '<td>' . $cont['contract_id'] .  '</td><td>' . $cont['description'] . '</td><td>' . $client['client_name'] .
                                 '</td><td>' . $contract_kind  . '</td><td>' . 
-                                $total_space . '</td><td>' . $cont['date'] . '</td>';
+                                $total_space . '</td><td>' . $cont['contract_date'] . '</td>';
 
                             echo '</tr>';
                         
@@ -445,7 +450,15 @@ if (isset($_SESSION['username'])) {
                 $id =  $_GET['id'];
                 $unit_id = $_POST['unit_id'];
                 $space = $_POST['space'];
-                echo '<h1>' . $id . '</h1>';
+                // Add space to total_space
+                $stmt = $db->prepare('SELECT total_space FROM contracts WHERE contract_id = ?');
+                $stmt->execute(array($id));
+                $spc = $stmt->fetch();
+                $total_space = $spc['total_space'];
+                $space = $_POST['space'];
+                $total_space += $space;
+
+                echo '<h1>' . $total_space . '</h1>';
 
                 $stmt = $db->prepare('INSERT INTO contract_units (contract_id,unit_id,unit_space) 
                 VALUES (:cont,:unid,:spid)');
@@ -454,6 +467,9 @@ if (isset($_SESSION['username'])) {
                     ':unid' => $unit_id,
                     ':spid' => $space
                 ));
+
+                $stmt = $db->prepare('UPDATE contracts SET total_space = ? WHERE contract_id = ?');
+                $stmt->execute(array($total_space, $id));
                 echo '<h1>Done</h1>';
             } else {
                 header('Location: contracts.php?page=1');
@@ -606,7 +622,7 @@ if (isset($_SESSION['username'])) {
                     <div class="form-group col-6">
                         <label class="col-form-label col-4"> التاريخ</label>
                         
-                        <input type="date" class="form-control col-8" name="date" value="<?php echo $row['date'] ?>" />
+                        <input type="date" class="form-control col-8" name="date" value="<?php echo $row['contract_date'] ?>" />
                     </div>
                 </div>
             
@@ -641,13 +657,22 @@ if (isset($_SESSION['username'])) {
 
             if($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $pageTitle = "إضافة عقد جديد";
+                // contracts table prop
+
                 $description = $_POST['description'];
                 $client_id = $_POST['client_id'];
                 $contract_kind = $_POST['contract_kind'];
                 $space = $_POST['space'];
                 $date = $_POST['date'];
+               
+                // maintainance table prop
+                $balance = $_POST['balance'];
+                
+                // contract_units prop
                 $unit_id = $_POST['unit_id'];
                 $total_space = $space;
+                
+                // calculate total space
                 $stmt = $db->prepare('SELECT unit_space FROM contract_units WHERE contract_id = ?');
                         $stmt->execute(array($db->lastInsertId()));
                         $unit_spaces = $stmt->fetchAll();
@@ -655,9 +680,9 @@ if (isset($_SESSION['username'])) {
                         $total_space += $space['unit_space'];
                 }
                 
-
+                // Insert contract tbl
                 $stmt = $db->prepare('INSERT INTO contracts (description,client_id,
-                contract_kind , total_space ,date  ) values (:descr , :cid , 
+                contract_kind , total_space ,contract_date  ) values (:descr , :cid , 
                 :conknd , :tsp, :dt)');
                 
                 $stmt->execute(array(
@@ -667,14 +692,25 @@ if (isset($_SESSION['username'])) {
                     ':tsp' => $total_space,
                     ':dt' => $date
                 ));
-                print $db->lastInsertId();
+                
+                $cont_id = $db->lastInsertId();
+                
+                // Insert contract_units tbl
                 $stmtUnits = $db->prepare('INSERT INTO contract_units (contract_id, unit_id,unit_space) VALUES (:last_id,:u,:s)');
                 $stmtUnits->execute(array(
-                    ':last_id' => $db->lastInsertId(),
+                    ':last_id' => $cont_id,
                     ':u' => $unit_id,
                     ':s' => $space
                 ));
-                
+
+                // Insert Maintainance table
+                $stmtMaint = $db->prepare('INSERT INTO maint (contract_id ,balance , start_date) 
+                VALUES (:coid, :blc , :sdt)');
+                $stmtMaint->execute(array(
+                    ':coid' => $cont_id,
+                    ':blc'  => $balance,
+                    ':sdt'  => $date
+                ));
 
                 echo '<h1 class="page-title text-center"> تم الحفظ </h1>';
                 echo '<div class="alert alert-success" role="alret"> تم حفظ بيانات' . $stmt->rowCount() . 'عقد جديد</div>';
