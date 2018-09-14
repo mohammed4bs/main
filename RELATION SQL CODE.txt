@@ -24,3 +24,30 @@ CREATE TABLE order_products (
     FOREIGN KEY (orderid) REFERENCES orders (id),
     FOREIGN KEY (productid) REFERENCES products (id)
 );
+
+
+
+
+Systems I have worked with in the past stored for each customer a row for each recurring product they have. 
+Each row has a product id, start date and anticipated end date, and a "billed to date". 
+Each month when you bill them you increment the date.
+
+From that you generate an invoice (storing the values to make up the invoice),
+ and they customer makes payments against that. 
+Their balance is calculated from opening balance + invoices +/- payments.
+
+It gets complicated when product prices change over time, 
+or discounts only apply for a specific period. 
+You need to store enough detail that you can recreate the invoice correctly at that point in time. 
+If you give a refund that you don't want to refund too much, and if required can you pro-rate adjustments?
+
+A good approach is to ask yourself what level of detail do you need to see on an invoice. 
+If I had to recreate the invoice, adjust it or provide a refund, where would I get the data from. 
+You need to either store the detail or be able to reproduce it reliably. Can you?
+
+The next level to consider is,
+ what accounting information to I need to report? 
+How much did we sell last month? what discounts applied? how many customers have paid? 
+who owes us money and how much?(debt mngt) How much tax have i charged? (is anything exempt? different rates?)
+
+Look and the end results you need and work back from there.
