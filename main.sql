@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 11, 2018 at 04:24 PM
+-- Generation Time: Sep 15, 2018 at 01:36 PM
 -- Server version: 10.1.34-MariaDB
 -- PHP Version: 5.6.37
 
@@ -60,7 +60,7 @@ CREATE TABLE `company` (
 --
 
 INSERT INTO `company` (`company_id`, `company_name`) VALUES
-(6, 'الريف الأوروبي');
+(7, 'الريف الأوروبي');
 
 -- --------------------------------------------------------
 
@@ -74,15 +74,16 @@ CREATE TABLE `contracts` (
   `client_id` int(11) NOT NULL,
   `contract_kind` int(11) NOT NULL DEFAULT '0',
   `total_space` float DEFAULT NULL,
-  `date` date NOT NULL
+  `contract_date` date NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
 -- Dumping data for table `contracts`
 --
 
-INSERT INTO `contracts` (`contract_id`, `description`, `client_id`, `contract_kind`, `total_space`, `date`) VALUES
-(36, 'new contract', 17, 0, 1, '2018-09-11');
+INSERT INTO `contracts` (`contract_id`, `description`, `client_id`, `contract_kind`, `total_space`, `contract_date`) VALUES
+(44, 'pppppppppppppp', 17, 0, 1, '2018-09-01'),
+(50, 'new contract', 16, 1, 1, '2018-08-01');
 
 -- --------------------------------------------------------
 
@@ -101,8 +102,29 @@ CREATE TABLE `contract_units` (
 --
 
 INSERT INTO `contract_units` (`contract_id`, `unit_id`, `unit_space`) VALUES
-(36, 29, 1),
-(36, 30, 1);
+(50, 36, 1);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `maint`
+--
+
+CREATE TABLE `maint` (
+  `maint_id` int(11) NOT NULL,
+  `contract_id` int(11) NOT NULL,
+  `balance` int(255) NOT NULL,
+  `start_date` date NOT NULL,
+  `end_date` date NOT NULL,
+  `billed_to_date` date NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `maint`
+--
+
+INSERT INTO `maint` (`maint_id`, `contract_id`, `balance`, `start_date`, `end_date`, `billed_to_date`) VALUES
+(8, 50, 1500, '2018-08-01', '0000-00-00', '0000-00-00');
 
 -- --------------------------------------------------------
 
@@ -121,7 +143,7 @@ CREATE TABLE `reefs` (
 --
 
 INSERT INTO `reefs` (`reef_id`, `company_id`, `reef_name`) VALUES
-(17, 6, 'الريف الألماني');
+(18, 7, 'الريف البلجيكي');
 
 -- --------------------------------------------------------
 
@@ -140,8 +162,10 @@ CREATE TABLE `units` (
 --
 
 INSERT INTO `units` (`unit_id`, `unit_name`, `reef_id`) VALUES
-(29, '1f', 17),
-(30, '51د', 17);
+(36, '11د', 18),
+(37, '23د', 18),
+(38, '12أ', 18),
+(39, '41أ', 18);
 
 -- --------------------------------------------------------
 
@@ -189,6 +213,13 @@ ALTER TABLE `contract_units`
   ADD KEY `unitID_conunits` (`unit_id`);
 
 --
+-- Indexes for table `maint`
+--
+ALTER TABLE `maint`
+  ADD PRIMARY KEY (`maint_id`),
+  ADD KEY `maint_contracts` (`contract_id`);
+
+--
 -- Indexes for table `reefs`
 --
 ALTER TABLE `reefs`
@@ -222,31 +253,37 @@ ALTER TABLE `clients`
 -- AUTO_INCREMENT for table `company`
 --
 ALTER TABLE `company`
-  MODIFY `company_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `company_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `contracts`
 --
 ALTER TABLE `contracts`
-  MODIFY `contract_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
+  MODIFY `contract_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
+
+--
+-- AUTO_INCREMENT for table `maint`
+--
+ALTER TABLE `maint`
+  MODIFY `maint_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `reefs`
 --
 ALTER TABLE `reefs`
-  MODIFY `reef_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `reef_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `units`
 --
 ALTER TABLE `units`
-  MODIFY `unit_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `unit_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- Constraints for dumped tables
@@ -264,6 +301,12 @@ ALTER TABLE `contracts`
 ALTER TABLE `contract_units`
   ADD CONSTRAINT `contractID_conunits` FOREIGN KEY (`contract_id`) REFERENCES `contracts` (`contract_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `unitID_conunits` FOREIGN KEY (`unit_id`) REFERENCES `units` (`unit_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `maint`
+--
+ALTER TABLE `maint`
+  ADD CONSTRAINT `maint_contracts` FOREIGN KEY (`contract_id`) REFERENCES `contracts` (`contract_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `reefs`
