@@ -38,7 +38,7 @@ $(function () {
                 }
             }); 
         }else{
-            $('#unit').html('<option value="">Select state first</option>'); 
+            $('#unit').html('<option value="">اختر ريف أولا</option>'); 
         }
     });
 
