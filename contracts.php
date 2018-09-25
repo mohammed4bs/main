@@ -63,6 +63,9 @@ if (isset($_SESSION['username'])) {
                         المساحة
                     </th>
                     <th>
+                        الرصيد
+                    </th>
+                    <th>
                         التاريخ
                     </th>
                     <th>
@@ -97,10 +100,20 @@ if (isset($_SESSION['username'])) {
                         foreach($unit_spaces as $space) {
                             $total_space += $space['unit_space'];
                         }
+                        $stmt = $db->prepare('SELECT balance FROM maint WHERE contract_id = ?');
+                                          $stmt->execute(array($row['contract_id'] ));
+                                          $b = $stmt->fetch();
                         echo '<tr>';
-                            echo '<td>' . $row['contract_id'] .  '</td><td>' . $row['description'] . '</td><td>' . $client['client_name'] .
-                            '</td><td>' . $row['unit_id'] . '</td><td>' . $contract_kind  . '</td><td>' . 
-                            $total_space . '</td><td>' . $row['contract_date'] . '</td><td><a href="?action=addUnit&id=' . $row['contract_id'] . 
+                            echo '<td>' . $row['contract_id'] .  '</td><td>'
+                             . $row['description'] . '</td><td>' 
+                             . $client['client_name'] .
+                            '</td><td>' . $row['unit_id'] . 
+                            '</td><td>' . $contract_kind  . 
+                            '</td><td>' . $total_space . 
+                            '</td><td>' . 
+                                          $b['balance'] .
+                            '</td><td>' . $row['contract_date'] . 
+                            '</td><td><a href="?action=addUnit&id=' . $row['contract_id'] . 
                             '" class="btn btn-outline-info">إضافة قطعة</a></td><td><a href="?action=Edit&id=' . $row['contract_id'] . 
                             '" class="btn btn-outline-info">تعديل</a><a href="?action=Delete&id=' . 
                             $row['contract_id'] . '" class="btn btn-danger confirm"> حذف</a></td>';
@@ -257,23 +270,8 @@ if (isset($_SESSION['username'])) {
                         <label class="col-form-label col-4"> المساحة</label>
                         <select class="custom-select" name="space">
                             <option selected>اختر المساحة</option>
-                        
-                        
-                        
-                            
                             <option value="0.5">نصف فدان</option>
                             <option value="1">فدان</option>
-                            <option value="1.5">فدان ونصف</option>
-                            <option value="2">فدانان</option>
-                            <option value="2.5">2.5</option>
-                            <option value="3"> 3</option>
-                            <option value="3.5">3.5</option>
-                            <option value="4">4</option>
-                            <option value="4.5">4.5</option>
-                            <option value="5">5</option>
-                            <option value="5.5">5.5</option>
-                             
-                             
                         </select>
                     </div>
                     <div class="form-group col-4">
@@ -457,7 +455,7 @@ if (isset($_SESSION['username'])) {
                 $total_space = $spc['total_space'];
                 $space = $_POST['space'];
                 $total_space += $space;
-
+                echo $space;
                 echo '<h1>' . $total_space . '</h1>';
 
                 $stmt = $db->prepare('INSERT INTO contract_units (contract_id,unit_id,unit_space) 
@@ -606,15 +604,7 @@ if (isset($_SESSION['username'])) {
                             
                             <option value="0.5">0.5</option>
                             <option value="1">1</option>
-                            <option value="1.5">1.5</option>
-                            <option value="2">2</option>
-                            <option value="2.5">2.5</option>
-                            <option value="3"> 3</option>
-                            <option value="3.5">3.5</option>
-                            <option value="4">4</option>
-                            <option value="4.5">4.5</option>
-                            <option value="5">5</option>
-                            <option value="5.5">5.5</option>
+                            
                              
                              
                         </select>
@@ -666,7 +656,11 @@ if (isset($_SESSION['username'])) {
                 $date = $_POST['date'];
                
                 // maintainance table prop
+                $start_date = $date;
                 $balance = $_POST['balance'];
+                $end_date = date("Y-m-d", strtotime(date("Y-m-d", strtotime($start_date)). "next day"));
+                
+                echo $end_date;
                 
                 // contract_units prop
                 $unit_id = $_POST['unit_id'];
@@ -704,12 +698,13 @@ if (isset($_SESSION['username'])) {
                 ));
 
                 // Insert Maintainance table
-                $stmtMaint = $db->prepare('INSERT INTO maint (contract_id ,balance , start_date) 
-                VALUES (:coid, :blc , :sdt)');
+                $stmtMaint = $db->prepare('INSERT INTO maint (contract_id ,balance , start_date, end_date) 
+                VALUES (:coid, :blc , :sdt, :edt)');
                 $stmtMaint->execute(array(
                     ':coid' => $cont_id,
                     ':blc'  => $balance,
-                    ':sdt'  => $date
+                    ':sdt'  => $date,
+                    ':edt'  => $end_date
                 ));
 
                 echo '<h1 class="page-title text-center"> تم الحفظ </h1>';
