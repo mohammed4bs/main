@@ -17,23 +17,23 @@ INNER JOIN maint on contracts.contract_id = maint.contract_id');
 $stmtC->execute();
 
 $rows = $stmtC->fetchAll();
-//$curDate = date('Y-m-d');
-$curDate = date('2018-09-31');
+$curDate = date('Y-m-d');
+//$curDate = date('2018-9-26');
 echo '<h3>Current Date is ' . $curDate . '</h3><br>';
 foreach ($rows as $row) {
-    $expDate = date('2018-09-30');
-    //$expDate = $row['end_date'];
+    //$expDate = date('2018-09-30');
+    $expDate = $row['start_date'];
     echo '<h3>Expiy Date is ' . $expDate . '</h3><br>';
     if ($expDate < $curDate) {
         // $d = (int)abs((strtotime($curDate) - strtotime($expDate))/(60*60*24*30));; == Month
         $d = (int)abs((strtotime($curDate) - strtotime($expDate))/(60*60*24));; // days
         echo '<h3> diffrence is ' . $d . '</h3><br>';
-        $m = ($d+1) * $row['total_space'] * $row['maint_fee']; 
+        $m = $d * $row['total_space'] * $row['maint_fee']; 
         echo '<h3> result is ' . $m . '</h3><br>';
         $blnc = $row['balance'];
         //$m = $m + $blnc;
         
-        $start_date_ = date("Y-m-d", strtotime(date("Y-m-d", strtotime($curDate)). "next day"));   //date('Y-m-01');
+        $start_date_ = $curDate;   //date("Y-m-d", strtotime(date("Y-m-d", strtotime($curDate)). "next day"));   //date('Y-m-01');
         $end_date_ = date("Y-m-d", strtotime(date("Y-m-d", strtotime($start_date_)). "next day"));
         echo '<h3> Next Start Date is ' . $start_date_ . '</h3><br>';
         echo '<h3> Next End Date is ' . $end_date_ . '</h3><br>';
