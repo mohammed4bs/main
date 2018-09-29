@@ -79,8 +79,12 @@
                 $test = strtotime($row['end_date']) - strtotime(date('y-m-d'));
                 echo $test . '<br>';
 
+                $stmtEl = $db->prepare('SELECT * FROM elec WHERE contract_id = ?');
+                $stmtEl->execute(array($filteredData['contract_id']));
+                $elec = $stmtEl->fetch();
+
                 if ($count > 0 ) {
-                    $conUnits += array($u['unit_id'] => $u + $filteredData + $row + $client_fetched);
+                    $conUnits += array($u['unit_id'] => $u + $filteredData + $row + $client_fetched + $elec);
                     echo $newbalance . '<br>';
                     
                 }
@@ -114,7 +118,13 @@
                     المساحة
                     </th>
                     <th>
-                        الرصيد
+                        رصيد الصيانة
+                    </th>
+                    <th>
+                        آخر قرآءة للكهرباء
+                    </th>
+                    <th>
+                        رصيد الكهرباء
                     </th>
                     
 
@@ -138,7 +148,10 @@
                              '</td><td>' .$f2['client_name']  .
                              '</td><td>' . $unit['contract_id'] .
                              '</td><td>' . $unit['total_space'] . 
-                             '</td><td>' . $unit['balance']  . "<a class='btn btn-primary' href='payment.php?action=payMaint&conid=" . $unit['contract_id'] . "'> دفع</a></td></tr>";
+                             '</td><td>' . $unit['balance']  . " <a class='btn btn-primary btn-sm' href='payment.php?action=payMaint&conid=" . $unit['contract_id'] . "'>  دفع الصيانة</a></td><td><b>"
+                             . $unit['prev_reading'] . '</b> || تاريخ ' . $unit['prev_reading_date'] . "<a class='btn btn-success btn-sm' href='payment.php?action=addCurrentElec&conid=" . $unit['contract_id'] . "'>   إضافة قرآءة جديدة</a>"  . "</td><td>"
+                             . $unit['elec_balance'] . " <a class='btn btn-secondary btn-sm' href='payment.php?action=payElec&conid=" . $unit['contract_id'] . "'>  دفع الكهرباء</a>" . "</td></tr>";
+
                     } 
                 ?>
             </tbody>
@@ -300,7 +313,7 @@
                                 "</td><td>" . $r['client_id'] . 
                                 "</td><td>" . $r['contract_id'] . "</td> <td>"
                                 . $r['total_space'] . "</td> <td>"
-                                . $r['balance'] . "<a class='badge badge-primary action-botton' href='payment.php?action=payMaint&conid=" . $r['contract_id'] . "'> دفع الصيانة</a></td></tr>";
+                                . $r['balance'] . " <a class='btn btn-primary btn-sm action-botton' href='payment.php?action=payMaint&conid=" . $r['contract_id'] . "'> دفع الصيانة</a></td></tr>";
                             
                             }
                             
