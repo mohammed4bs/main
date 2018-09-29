@@ -202,7 +202,7 @@ if (isset($_SESSION['username'])) {
                 
                    
                     <div class="form-group col-2">
-                        <label class="col-form-label col-4">اسم الشركة</label>
+                        <label class="col-form-label col-8">اسم الشركة</label>
                         <select class="custom-select" id="comp" name="company_id">
                             <option selected>اختر شركة</option>
                             
@@ -220,7 +220,7 @@ if (isset($_SESSION['username'])) {
                    
                     
                     <div class="form-group col-2">
-                    <label class="col-form-label col-4"> إسم الريف</label>
+                    <label class="col-form-label col-8"> إسم الريف</label>
                         <select class="custom-select" id="reef" name="reef_id">
                             <option selected value="">اختر ريف</option>
                             <?php /*$stmt = $db->prepare('SELECT * FROM reefs');
@@ -234,7 +234,7 @@ if (isset($_SESSION['username'])) {
                         </select>
                     </div>
                     <div class="form-group col-2">
-                        <label class="col-form-label col-4"> رقم القطعة</label>
+                        <label class="col-form-label col-8"> رقم القطعة</label>
                         <select class="custom-select" id="unit" name="unit_id">
                             <option selected>اختر قطعة</option>
                         
@@ -275,14 +275,27 @@ if (isset($_SESSION['username'])) {
                         </select>
                     </div>
                     <div class="form-group col-4">
-                        <label class="col-form-label col-4"> الرصيد</label>
+                        <label class="col-form-label col-6"> رصيد الصيانة</label>
                         
                         <input type="text" class="form-control col-8" name="balance" />
                     </div>
+                    
                     <div class="form-group col-4">
                         <label class="col-form-label col-4"> التاريخ</label>
                         
                         <input type="date" class="form-control col-8" name="date" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-4">
+                        <label class="col-form-label col-6"> رصيد الكهرباء</label>
+                        
+                        <input type="text" class="form-control col-8" name="elec_balance" />
+                    </div>
+                    <div class="form-group col-4">
+                        <label class="col-form-label col-6"> آخر قراءة</label>
+                        
+                        <input type="text" class="form-control col-8" name="prev_reading" />
                     </div>
                 </div>
                 
@@ -661,6 +674,12 @@ if (isset($_SESSION['username'])) {
                 $end_date = date("Y-m-d", strtotime(date("Y-m-d", strtotime($start_date)). "next day"));
                 
                 echo $end_date;
+
+                // elec table prop
+                $elec_balance = $_POST['elec_balance'];
+                $prev_reading = $_POST['prev_reading'];
+                $rate = 1.45;
+
                 
                 // contract_units prop
                 $unit_id = $_POST['unit_id'];
@@ -707,6 +726,15 @@ if (isset($_SESSION['username'])) {
                     ':edt'  => $end_date
                 ));
 
+                $stmtElec = $db->prepare('INSERT INTO elec 
+                (contract_id , prev_reading, prev_reading_date, balance) 
+                VALUES (:con,:prev,:prev_dt,:eblnc)');
+                $stmtElec->execute(array(
+                    ':con'      => $cont_id,
+                    ':prev'     => $prev_reading,
+                    ':prev_dt'  => date('Y-m-d'),
+                    ':eblnc'    => $elec_balance
+                ));
                 echo '<h1 class="page-title text-center"> تم الحفظ </h1>';
                 echo '<div class="alert alert-success" role="alret"> تم حفظ بيانات' . $stmt->rowCount() . 'عقد جديد</div>';
                 echo '<a href="contracts.php?page=1" class=" btn btn-group-vertical"> رجوع الي صفحة العقود</a>';
