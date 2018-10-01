@@ -48,46 +48,55 @@
             $unit = $_GET['unit'];
             $stmt = $db->prepare('SELECT * FROM units WHERE unit_name like ? OR unit_id like ?');
             $stmt->execute(array('%' . $unit . '%' , '%' . $unit . '%' ));
-            $row = $stmt->rowCount();
+            $rowC = $stmt->rowCount();
             $data = $stmt->fetchAll();
             
             $conUnits = array();
             foreach ($data as $u) {
-                echo $u['unit_id'] . '<br>';
+                //echo $u['unit_id'] . '<br>';
                 // Get all units that exist in contracts
                 $stmt = $db->prepare('SELECT * FROM contract_units WHERE unit_id = ?');
                 $stmt->execute(array($u['unit_id']));
                 $count = $stmt->rowCount();
-                $filteredData = $stmt->fetch();
+                if ($count > 0) {
+                    $filteredData = $stmt->fetch();
 
-                // Get Maint info for that contract
-                $stmt = $db->prepare('SELECT * FROM maint WHERE contract_id = ?');
-                $stmt->execute(array($filteredData['contract_id']));
-                $row = $stmt->fetch();
+                    // Get Maint info for that contract
+                    $stmt = $db->prepare('SELECT * FROM maint WHERE contract_id = ?');
+                    $stmt->execute(array($filteredData['contract_id']));
+                    $row = $stmt->fetch();
 
-                // Get client_id and Total space from contracts
-                $stmtClient = $db->prepare('SELECT client_id,total_space FROM contracts WHERE contract_id = ?');
-                $stmtClient->execute(array($filteredData['contract_id']));
-                $client_fetched = $stmtClient->fetch(); 
-                $balance = $row['balance'];
-                $newbalance = 0;
-                if (strtotime($row['end_date']) < strtotime(date('y-m-d'))) {
-                    $newbalance = $balance + 750;
-                } else {
+                    // Get client_id and Total space from contracts
+                    $stmtClient = $db->prepare('SELECT contract_id,client_id,total_space FROM contracts WHERE contract_id = ?');
+                    $stmtClient->execute(array($filteredData['contract_id']));
+                    $client_fetched = $stmtClient->fetch(); 
+                    /*$balance = $row['balance'];
                     $newbalance = 0;
-                }
-                $test = strtotime($row['end_date']) - strtotime(date('y-m-d'));
-                echo $test . '<br>';
-
-                $stmtEl = $db->prepare('SELECT * FROM elec WHERE contract_id = ?');
-                $stmtEl->execute(array($filteredData['contract_id']));
-                $elec = $stmtEl->fetch();
-
-                if ($count > 0 ) {
-                    $conUnits += array($u['unit_id'] => $u + $filteredData + $row + $client_fetched + $elec);
-                    echo $newbalance . '<br>';
+                    if (strtotime($row['end_date']) < strtotime(date('y-m-d'))) {
+                        $newbalance = $balance + 750;
+                    } else {
+                        $newbalance = 0;
+                    }
+                    $test = strtotime($row['end_date']) - strtotime(date('y-m-d'));
+                    echo $test . '<br>'; */
                     
+                    $stmtEl = $db->prepare('SELECT * FROM elec WHERE contract_id = ?');
+                    $stmtEl->execute(array($client_fetched['contract_id']));
+                    $elecT = $stmtEl->fetch();
+                    echo $filteredData['contract_id'];
+                    echo '<pre>';
+                    print_r($elecT);
+                    echo '</pre>';
+
+                    
+                    $conUnits += array($u['unit_id'] => $u + $filteredData + $row + $client_fetched + $elecT );
                 }
+                    
+                        
+                        
+                    
+            
+                
 
             }
 
@@ -147,10 +156,10 @@
                              '</td><td>' . $f1['reef_name'] .
                              '</td><td>' .$f2['client_name']  .
                              '</td><td>' . $unit['contract_id'] .
-                             '</td><td>' . $unit['total_space'] . 
-                             '</td><td>' . $unit['balance']  . " <a class='btn btn-primary btn-sm' href='payment.php?action=payMaint&conid=" . $unit['contract_id'] . "'>  دفع الصيانة</a></td><td><b>"
-                             . $unit['prev_reading'] . '</b> || تاريخ ' . $unit['prev_reading_date'] . "<a class='btn btn-success btn-sm' href='payment.php?action=addCurrentElec&conid=" . $unit['contract_id'] . "'>   إضافة قرآءة جديدة</a>"  . "</td><td>"
-                             . $unit['elec_balance'] . " <a class='btn btn-secondary btn-sm' href='payment.php?action=payElec&conid=" . $unit['contract_id'] . "'>  دفع الكهرباء</a>" . "</td></tr>";
+                             '</td><td><b> ' . $unit['total_space'] . ' </b>فدان' . 
+                             '</td><td><b> ' . $unit['balance']  . ' </b>جنية' . " <a class='btn btn-primary btn-sm' href='payment.php?action=payMaint&conid=" . $unit['contract_id'] . "'>  دفع الصيانة</a></td><td><b>"
+                             . $unit['prev_reading'] . '</b> || تاريخ ' . $unit['prev_reading_date'] . "<a class='btn btn-success btn-sm' href='payment.php?action=addCurrentElec&conid=" . $unit['contract_id'] . "'>   إضافة قرآءة جديدة</a>"  . "</td><td><b>"
+                             . $unit['elec_balance'] .  ' </b>جنية' . " <a class='btn btn-secondary btn-sm' href='payment.php?action=payElec&conid=" . $unit['contract_id'] . "'>  دفع الكهرباء</a>" . "</td></tr>";
 
                     } 
                 ?>
@@ -180,10 +189,73 @@
                                      INNER JOIN maint m on c.contract_id = m.contract_id
                                       WHERE client_id = ?');
                 $stmt->execute(array($c['client_id']));
-                $result = $stmt->fetchAll();
-                echo ' %%%%%%%%%%%%%%%%%%%%%%%%%%%% <pre>';
-                print_r($result);
-                echo '</pre>';
+                $clientCount = $stmt->rowCount();
+                if ($clientCount > 0) {
+                    $result = $stmt->fetch();
+                   // echo ' %%%%%%%%%%%%%%%%%%%%%%%%%%%% <pre>';
+                    //print_r($result);
+                   // echo '</pre>';
+                    $reefs = [];
+                    $conUnits = [];
+                
+                    $cid = $result['contract_id'];
+                    //echo '---------------------------------------------' . $cid;
+                    $stmtUnits = $db->prepare('SELECT * FROM units u INNER JOIN
+                    contract_units cu on cu.unit_id = u.unit_id INNER JOIN
+                    reefs r ON u.reef_id = r.reef_id
+                    WHERE cu.contract_id = ?');
+                    $stmtUnits->execute(array($cid));
+                    $unitCount = $stmtUnits->rowCount();
+                    echo '<h1>' . $unitCount . '</h1>';
+
+                    if ($unitCount > 1) {
+                        $units = $stmtUnits->fetchAll();
+                    
+                        foreach ($units as $uni ) {
+                            $reefs = array($uni['reef_name']);
+                            $conUnits = array($uni['unit_name']);
+                        }
+                    }elseif ($unitCount > 0) {
+                        $units = $stmtUnits->fetch();
+                    
+                        
+                        $reefs[] = $units['reef_name'];
+                        $conUnits[] = $units['unit_name'];
+                        
+                    }
+                    $stmtElect = $db->prepare('SELECT * FROM elec WHERE contract_id = ?');
+                    $stmtElect->execute(array($cid));
+                    $elecFetch = $stmtElect->fetch();
+                    /*if ($unitCount > 1) {
+                        $units = $stmtUnits->fetchAll();
+                    
+                        foreach ($units as $unit ) {
+                            array_push($reefs,$unit['reef_name']);
+                            array_push($conUnits,$unit['unit_name']);
+                        }
+                    } elseif ($unitCount > 0) {
+                        $units = $stmtUnits->fetch();
+                        array_push($reefs,$unit['reef_name']);
+                        array_push($conUnits,$unit['unit_name']);
+                    }*/
+                    
+                    echo '***********************<pre>';
+                    //print_r($units);
+                    echo '</pre>';
+                    echo '+++++++++++++++++++++++<pre>';
+                    print_r($reefs);
+                    echo '</pre>';
+                    echo '$$$$$$$$$$$$$$$$$$$$$$$<pre>';
+                    print_r($conUnits);
+                    echo '</pre>';
+                    $conClients += array($c['client_id'] => $result + $units + $elecFetch);
+                    echo '=======0990000 909090 <pre>';
+                    //print_r($conUnits);
+                    print_r($conClients);
+                    echo '</pre>'; 
+                    
+                }
+                
                 
                 /*$stmt = $db->prepare('SELECT * FROM contracts WHERE client_id = ?');
                 $stmt->execute(array($c['client_id']));
@@ -221,41 +293,12 @@
                     $conClients += array($c['client_id'] => $c + $filteredData + $maint + $cont);
                     
                 }*/
-                $reefs = [];
-                $conUnits = [];
-            foreach ($result as $u) {
-                $cid = $u['contract_id'];
-                //echo '---------------------------------------------' . $cid;
-                $stmtUnits = $db->prepare('SELECT * FROM units u INNER JOIN
-                contract_units cu on cu.unit_id = u.unit_id INNER JOIN
-                reefs r ON u.reef_id = r.reef_id
-                WHERE cu.contract_id = ?');
-                $stmtUnits->execute(array($cid));
-                $units = $stmtUnits->fetchAll();
-                
-                foreach ($units as $unit ) {
-                    array_push($reefs,$unit['reef_name']);
-                    array_push($conUnits,$unit['unit_name']);
-                }
-                echo '***********************<pre>';
-                print_r($units);
-                echo '</pre>';
-                echo '+++++++++++++++++++++++<pre>';
-                print_r($reefs);
-                echo '</pre>';
-                echo '$$$$$$$$$$$$$$$$$$$$$$$<pre>';
-                print_r($conUnits);
-                echo '</pre>';
-                $conClients += array($u['client_id'] => $u + $reefs + $conUnits);
-                echo '=======0990000 909090 <pre>';
-                print_r($conUnits);
-                echo '</pre>';
-            }
+           
 
             }
             
             echo '******************************************<pre>';
-            print_r($conClients);
+            //print_r($conClients);
             echo '</pre>'
             ?>
 
@@ -301,19 +344,30 @@
                         <tbody>
                         
                         <?php 
-                        
-                            $units_diplayed = implode("-",$conUnits);
-                            $reefs_dislayed = implode("-",$reefs);
-
-                            print_r($units_diplayed);
                             foreach($conClients as $r) {
-                                echo "<tr><td>" . $r['contract_id']. 
-                                "</td><td>" . $units_diplayed
-                                . "</td><td>" . $reefs_dislayed . 
-                                "</td><td>" . $r['client_id'] . 
-                                "</td><td>" . $r['contract_id'] . "</td> <td>"
-                                . $r['total_space'] . "</td> <td>"
-                                . $r['balance'] . " <a class='btn btn-primary btn-sm action-botton' href='payment.php?action=payMaint&conid=" . $r['contract_id'] . "'> دفع الصيانة</a></td></tr>";
+                                $units_diplayed = implode("-",$conUnits);
+                                $reefs_dislayed = implode("-",$reefs);
+                                $printed_unit_value;
+                                $printed_reef_value;
+                                if(empty($reefs) && empty($conUnits)) {
+                                    $printed_unit_value = $r['unit_name'];
+                                    $printed_reef_value = $r['reef_name'];
+                                } else {
+                                    $printed_unit_value = $units_diplayed;
+                                    echo $printed_unit_value;
+                                    $printed_reef_value = $reefs_dislayed;
+                                    echo $printed_reef_value;
+                                }
+
+                                print_r($units_diplayed);
+                                
+                                    echo "<tr><td>" . $r['contract_id']. 
+                                    "</td><td>" . $printed_unit_value
+                                    . "</td><td>" . $printed_reef_value . 
+                                    "</td><td>" . $r['client_id'] . 
+                                    "</td><td>" . $r['contract_id'] . "</td> <td>"
+                                    . $r['total_space'] . "</td> <td>"
+                                    . $r['balance'] . " <a class='btn btn-primary btn-sm action-botton' href='payment.php?action=payMaint&conid=" . $r['contract_id'] . "'> دفع الصيانة</a></td></tr>";
                             
                             }
                             
@@ -381,11 +435,11 @@
                                 <div class="card-header">اجمالي مستحقات الكهرباء</div>
                                 <div class="card-body">
                                     <?php 
-                                        $stmt = $db->prepare('SELECT COUNT(client_id) FROM contracts');
+                                        $stmt = $db->prepare('SELECT SUM(elec_balance) FROM elec');
                                         $stmt->execute();
-                                        $clientsCount = $stmt->fetch();
+                                        $elecSum = $stmt->fetch();
                                         
-                                        echo "<h5 class='card-title'>" . $clientsCount['COUNT(client_id)'] . " عميل</h5>";
+                                        echo "<h5 class='card-title'>" . $elecSum['SUM(elec_balance)'] . " جنية</h5>";
                                     ?>
                                     
                                     <!-- <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>-->
@@ -401,7 +455,7 @@
                                         $stmt->execute();
                                         $contractsCount = $stmt->fetch();
                                         
-                                        echo "<h5 class='card-title'>" . $contractsCount['COUNT(contract_id)'] . " عقود</h5>";
+                                        echo "<h5 class='card-title'>" . $contractsCount['COUNT(contract_id)'] . " عقد</h5>";
                                     ?>
                                     
                                     <!-- <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>-->
