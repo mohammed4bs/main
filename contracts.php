@@ -727,7 +727,7 @@ if (isset($_SESSION['username'])) {
                 ));
 
                 $stmtElec = $db->prepare('INSERT INTO elec 
-                (contract_id , prev_reading, prev_reading_date, balance) 
+                (contract_id , prev_reading, prev_reading_date, elec_balance) 
                 VALUES (:con,:prev,:prev_dt,:eblnc)');
                 $stmtElec->execute(array(
                     ':con'      => $cont_id,
