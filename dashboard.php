@@ -183,7 +183,9 @@
             $data = $stmt->fetchAll();
             
             $conClients = [];
+            
             foreach ($data as $c) {
+                
                 echo $c['client_id'];
                 $stmt = $db->prepare('SELECT * FROM contracts c 
                                      INNER JOIN maint m on c.contract_id = m.contract_id
@@ -195,105 +197,56 @@
                    // echo ' %%%%%%%%%%%%%%%%%%%%%%%%%%%% <pre>';
                     //print_r($result);
                    // echo '</pre>';
-                    $reefs = [];
-                    $conUnits = [];
-                
+                    
+                    $reef;
                     $cid = $result['contract_id'];
                     //echo '---------------------------------------------' . $cid;
-                    $stmtUnits = $db->prepare('SELECT * FROM units u INNER JOIN
+                    /*$stmtUnits = $db->prepare('SELECT * FROM units u INNER JOIN
                     contract_units cu on cu.unit_id = u.unit_id INNER JOIN
                     reefs r ON u.reef_id = r.reef_id
-                    WHERE cu.contract_id = ?');
-                    $stmtUnits->execute(array($cid));
-                    $unitCount = $stmtUnits->rowCount();
-                    echo '<h1>' . $unitCount . '</h1>';
-
-                    if ($unitCount > 1) {
-                        $units = $stmtUnits->fetchAll();
+                    WHERE cu.contract_id = ?');*/
                     
-                        foreach ($units as $uni ) {
-                            $reefs = array($uni['reef_name']);
-                            $conUnits = array($uni['unit_name']);
-                        }
-                    }elseif ($unitCount > 0) {
+                   /* 
+                        
+                    } elseif ($unitCount == 1) {
                         $units = $stmtUnits->fetch();
+                        $stmt2 = $db->prepare('SELECT unit_name, reef_id FROM units WHERE unit_id = ?');
+                            $stmt2->execute(array($units['unit_id']));
+                            $unit_names = $stmt2->fetch();
+                            $stmtR = $db->prepare('SELECT reef_name FROM reefs WHERE reef_id = ?');
+                            $stmtR->execute(array($unit_names['reef_id']));
+                            $reef_names = $stmtR->fetch();
+                            array_push($conUnits,$unit_names['unit_name']);
+                            array_push($reefs,$reef_names['reef_name']);
+                        
+                    }*/
                     
-                        
-                        $reefs[] = $units['reef_name'];
-                        $conUnits[] = $units['unit_name'];
-                        
-                    }
                     $stmtElect = $db->prepare('SELECT * FROM elec WHERE contract_id = ?');
                     $stmtElect->execute(array($cid));
                     $elecFetch = $stmtElect->fetch();
-                    /*if ($unitCount > 1) {
-                        $units = $stmtUnits->fetchAll();
                     
-                        foreach ($units as $unit ) {
-                            array_push($reefs,$unit['reef_name']);
-                            array_push($conUnits,$unit['unit_name']);
-                        }
-                    } elseif ($unitCount > 0) {
-                        $units = $stmtUnits->fetch();
-                        array_push($reefs,$unit['reef_name']);
-                        array_push($conUnits,$unit['unit_name']);
-                    }*/
                     
-                    echo '***********************<pre>';
+                    //echo '***********************<pre>';
                     //print_r($units);
-                    echo '</pre>';
-                    echo '+++++++++++++++++++++++<pre>';
-                    print_r($reefs);
-                    echo '</pre>';
-                    echo '$$$$$$$$$$$$$$$$$$$$$$$<pre>';
-                    print_r($conUnits);
-                    echo '</pre>';
-                    $conClients += array($c['client_id'] => $result + $units + $elecFetch);
-                    echo '=======0990000 909090 <pre>';
+                   ///// echo '</pre>';
+                    //echo '+++++++++++++++++++++++<pre>';
+                    //print_r($reefs);
+                    //echo '</pre>';
+                    //echo '$$$$$$$$$$$$$$$$$$$$$$$<pre>';
                     //print_r($conUnits);
-                    print_r($conClients);
-                    echo '</pre>'; 
-                    
-                }
-                
-                
-                /*$stmt = $db->prepare('SELECT * FROM contracts WHERE client_id = ?');
-                $stmt->execute(array($c['client_id']));
-                $count = $stmt->rowCount();
-                
-                $filteredData = $stmt->fetch();
-                // Get maint info
-                $stmtMaint = $db->prepare('SELECT * FROM maint WHERE contract_id = ?');
-                $stmtMaint->execute(array($filteredData['contract_id']));
-                $maint = $stmtMaint->fetch();
-                // get unit info
-                $stmtContract = $db->prepare('SELECT * FROM contract_units  
-                INNER JOIN 
-                units ON contract_units.unit_id = units.unit_id
-                WHERE contract_id = ?');
-                $stmtContract->execute(array($filteredData['contract_id']));
-                $cont = $stmtContract->fetchAll();
-                echo '<pre>';
-                print_r($cont);
-                echo '</pre>';
-                $con_units = [];
-                foreach ($cont as $unit) {
-                    $stmt = $db->prepare('SELECT * FROM units WHERE unit_id = ?');
-                    $stmt->execute(array($unit['unit_id']));
-                    $stmt->fetchAll();
-                    if ($stmt->rowCount() > 0) {
-                        $con_units += array($unit['unit_name']);
+                    //echo var_dump($conUnits);
+                    //print_r($reefs);
+                    //echo var_dump($reefs);
 
-                    }
-                    echo '<pre>';
-                    print_r($con_units);
                     echo '</pre>';
-                }
-                if ($count > 0 ) {
-                    $conClients += array($c['client_id'] => $c + $filteredData + $maint + $cont);
+                    //print_r($conUnit);
+                    $conClients += array($c['client_id'] => $result + $elecFetch);
+                    //echo '<pre>';
+                    print_r($conClients);
+                    //echo '</pre>'; 
                     
-                }*/
-           
+                    
+                }
 
             }
             
@@ -334,40 +287,64 @@
                             المساحة
                             </th>
                             <th>
-                                الرصيد
+                                رصيد الصيانة
+                            </th>
+                            <th>
+                                آخر قرآءة للكهرباء
+                            </th>
+                            <th>
+                                رصيد الكهرباء
                             </th>
                             
 
-                        </tr>
+                        </tr>                   
                         
                         </thead>
                         <tbody>
                         
                         <?php 
+                        
                             foreach($conClients as $r) {
-                                $units_diplayed = implode("-",$conUnits);
-                                $reefs_dislayed = implode("-",$reefs);
-                                $printed_unit_value;
-                                $printed_reef_value;
-                                if(empty($reefs) && empty($conUnits)) {
-                                    $printed_unit_value = $r['unit_name'];
-                                    $printed_reef_value = $r['reef_name'];
-                                } else {
-                                    $printed_unit_value = $units_diplayed;
-                                    echo $printed_unit_value;
-                                    $printed_reef_value = $reefs_dislayed;
-                                    echo $printed_reef_value;
-                                }
+                                $reefs = [];
+                                $conUnits = [];
+                                $c = $db->prepare('SELECT client_name FROM clients WHERE client_id = ?');
+                                $c->execute(array($r['client_id']));
+                                $cl = $c->fetch();
 
-                                print_r($units_diplayed);
+                                $stmtUnits = $db->prepare('SELECT unit_id FROM contract_units WHERE contract_id = ?');
+                                $stmtUnits->execute(array($r['contract_id']));
+                                $unitCount = $stmtUnits->rowCount();
+                                echo '<h1>' . $unitCount . '</h1>';
+                                
+                            
+                                
+                                
+                                    $units = $stmtUnits->fetchAll();
+                                    foreach($units as $unit) {
+                                        $stmt = $db->prepare('SELECT unit_name, reef_id FROM units WHERE unit_id = ?');
+                                        $stmt->execute(array($unit['unit_id']));
+                                        $unit_name = $stmt->fetch();
+                                        $stmtR = $db->prepare('SELECT reef_name FROM reefs WHERE reef_id = ?');
+                                        $stmtR->execute(array($unit_name['reef_id']));
+                                        $reef_name = $stmtR->fetch();
+                                        //$conUnits += array($unit_names + $reef_names);
+                                        array_push($conUnits,$unit_name['unit_name']);
+                                        array_push($reefs,$reef_name['reef_name']);
+                                        
+                                    }
+                                $unit_names = implode('-', $conUnits);
+                                $reef_names = implode('-', $reefs);
                                 
                                     echo "<tr><td>" . $r['contract_id']. 
-                                    "</td><td>" . $printed_unit_value
-                                    . "</td><td>" . $printed_reef_value . 
-                                    "</td><td>" . $r['client_id'] . 
+                                    "</td><td>" . $unit_names
+                                    . "</td><td>" . $reef_names . 
+                                    "</td><td>" . $cl['client_name'] . 
                                     "</td><td>" . $r['contract_id'] . "</td> <td>"
-                                    . $r['total_space'] . "</td> <td>"
-                                    . $r['balance'] . " <a class='btn btn-primary btn-sm action-botton' href='payment.php?action=payMaint&conid=" . $r['contract_id'] . "'> دفع الصيانة</a></td></tr>";
+                                    . $r['total_space'] . "</td>"
+                                    . 
+                                    '<td><b> ' . $r['balance']  . ' </b>جنية' . " <a class='btn btn-primary btn-sm' href='payment.php?action=payMaint&conid=" . $r['contract_id'] . "'>  دفع الصيانة</a></td><td><b>"
+                                    . $r['prev_reading'] . '</b> || تاريخ ' . $r['prev_reading_date'] . "<a class='btn btn-success btn-sm' href='payment.php?action=addCurrentElec&conid=" . $r['contract_id'] . "'>   إضافة قرآءة جديدة</a>"  . "</td><td><b>"
+                                    . $r['elec_balance'] .  ' </b>جنية' . " <a class='btn btn-secondary btn-sm' href='payment.php?action=payElec&conid=" . $r['contract_id'] . "'>  دفع الكهرباء</a>" . "</td></tr>";;
                             
                             }
                             
