@@ -42,6 +42,21 @@ $(function () {
         }
     });
 
+    $('#unit').on('change', function() {
+        var unitID = $(this).val();
+        if(unitID){
+            $.ajax({
+                type: 'POST',
+                url: 'ajaxData.php',
+                data: 'unit_id='+unitID,
+                success:function(html) {
+                    $('.space').html(html);
+                }
+            });        
+        }else {
+            $('.space').html('<option value="">اختر قطعة أولا</option>'); 
+        }
+    });
 });
 
 

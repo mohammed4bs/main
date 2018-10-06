@@ -23,7 +23,7 @@ if (isset($_SESSION['username'])) {
             echo '<option value="">لا يوجد ريف</option>';
         }
     }elseif(!empty($_POST["reef_id"])){
-        //Fetch all city data
+        //Fetch all units data
         $stmt = $db->prepare("SELECT * FROM units WHERE reef_id = ? ORDER BY unit_id ASC");
         $stmt->execute(array($_POST['reef_id']));
         $units = $stmt->fetchAll();
@@ -38,8 +38,19 @@ if (isset($_SESSION['username'])) {
                 $stmt = $db->prepare('SELECT * FROM contract_units WHERE unit_id = ?');
                 $stmt->execute(array($unit['unit_id']));
                 $count = $stmt->rowCount();
+                $un = $stmt->fetchAll();
+
                 if($count > 0) { 
-                    echo '<option disabled  value="'.$unit['unit_id'].'">'.$unit['unit_name'].'</option>';
+                    $sp;
+                    foreach($un as $u) {
+                        $sp += $u['unit_space'];
+                    }
+                    if ($sp >= 1) {
+                        echo '<option disabled  value="'.$unit['unit_id'].'">'.$unit['unit_name'].'</option>';
+                    } else {
+                        echo '<option  value="'.$unit['unit_id'].'">'.$unit['unit_name'].'</option>';    
+                    }
+                    
                 } else {
                     echo '<option  value="'.$unit['unit_id'].'">'.$unit['unit_name'].'</option>';
                 }
@@ -48,7 +59,42 @@ if (isset($_SESSION['username'])) {
         }else{
             echo '<option value="">لا توجد قطع </option>';
         }
-    }
+    }elseif(!empty($_POST["unit_id"])){
+        
+        
+                $unit_id = $_POST['unit_id'];
+             
+            
+                $stmt = $db->prepare('SELECT * FROM contract_units WHERE unit_id = ?');
+                $stmt->execute(array($unit_id));
+                $count = $stmt->rowCount();
+                $un = $stmt->fetchAll();
+                
+
+                if($count > 0) { 
+                    
+                    $sp;
+                    foreach($un as $u) {
+                        $sp += $u['unit_space'];
+                    }
+                    echo $sp;
+                    if ($sp == 0) {
+                        echo '<option> اختر المساحة </option>';
+                        '<option> echo $sp; </option>';
+                        echo '<option value="0.5">نصف فدان</option><option value="1"> فدان</option>';
+                    } elseif ($sp == 0.5) {
+                        echo '<option> اختر المساحة </option>';
+                        echo '<option value="0.5">نصف فدان</option>';    
+                    } else {
+                        echo '<option>  المساحة بالكامل محجوزة </option>';
+                    }
+                    
+                } else {
+                    echo '<option> اختر المساحة </option>';
+                    echo '<option value="0.5">نصف فدان</option><option value="1"> فدان</option>';
+                }
+            }
+    
 } else {
     echo 'Worng';
 }

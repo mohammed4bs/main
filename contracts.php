@@ -268,10 +268,9 @@ if (isset($_SESSION['username'])) {
                 <div class="row">
                     <div class="form-group col-4">
                         <label class="col-form-label col-4"> المساحة</label>
-                        <select class="custom-select" name="space">
-                            <option selected>اختر المساحة</option>
-                            <option value="0.5">نصف فدان</option>
-                            <option value="1">فدان</option>
+                        <select class="custom-select space" name="space">
+                              <option> اختر المساحة </option>
+                            
                         </select>
                     </div>
                     <div class="form-group col-4">
@@ -438,10 +437,8 @@ if (isset($_SESSION['username'])) {
                             </div>
                             <div class="form-group col-2">
                                 <label class="col-form-label col-4"> مساحة القطعة</label>
-                                <select class="custom-select" name="space">
-                                    <option selected>اختر المساحة</option>
-                                    <option value="0.5">نصف فدان</option>
-                                    <option value="1">فدان</option>
+                                <select class="custom-select space"  name="space">
+                                    
                                 </select>
                             </div>
                             
@@ -481,7 +478,26 @@ if (isset($_SESSION['username'])) {
 
                 $stmt = $db->prepare('UPDATE contracts SET total_space = ? WHERE contract_id = ?');
                 $stmt->execute(array($total_space, $id));
-                echo '<h1>Done</h1>';
+
+
+                $stmtMaint = $db->prepare('SELECT maint_fee,balance FROM maint WHERE contract_id = ?');
+                $stmtMaint->execute(array($id));
+                $maintData = $stmtMaint->fetch();
+                $blnc = $maintData['balance'];
+                if ($space == 1) {
+                    $blnc += $maintData['maint_fee']; 
+                }elseif ($space == 0.5) {
+                    $blnc += ($maintData['maint_fee'] / 2);
+                }
+                $stmtMaintUpdate = $db->prepare('UPDATE maint SET balance = :zblnc WHERE contract_id = :cid');
+                $stmtMaintUpdate->execute(array(
+                    ':zblnc' => $blnc,
+                    ':cid'   => $id
+                ));
+
+                echo '<h1 class="page-title text-center">تم الحذف</h1>';
+                echo '<div class="alert alert-success" role="alret"> تم حذف بيانات' . $stmt->rowCount() . 'عقد </div>';
+                echo '<a href="contracts.php?page=1" class=" btn btn-group-vertical"> رجوع الي صفحة العقود</a>';
             } else {
                 header('Location: contracts.php?page=1');
                 exit();
