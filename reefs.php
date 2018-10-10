@@ -177,14 +177,14 @@ if (isset($_SESSION['username'])) {
                         <select class="custom-select" name="company_id">
                         <?php $stmt = $db->prepare('SELECT * FROM company WHERE company_id = ? LIMIT 1');
                               $stmt->execute(array($row['company_id']));
-                              $company = $stmt->fetch();  ?>
-                            <option value='<?php $row['company_id'] ?>' selected><?php echo $company['company_name'];  ?> </option>
+                              $company = $stmt->fetch();  
+                            echo '<option value="' . $row['company_id']  . '" selected>' . $company['company_name'] .  ' </option>';
                         
+                            ?>
                         
-                        
-                            <?php $stmt = $db->prepare('SELECT * FROM company');
-                              $stmt->execute();
-                              $companies = $stmt->fetchAll();  
+                            <?php $stmt = $db->prepare('SELECT * FROM company WHERE company_id != ?');
+                              $stmt->execute(array($row['company_id']));
+                              $companies = $stmt->fetchAll();
                               
                               foreach ($companies as $company) {
                                   echo '<option value="' . $company['company_id'] . '">' . $company['company_name'] . '</option>';
@@ -209,12 +209,34 @@ if (isset($_SESSION['username'])) {
                 $id = $_GET['id'];
                 $reef_name = $_POST['reef_name'];
                 $company_id = $_POST['company_id'];
+
+                $formErrors = array();
+
+                if(empty($reef_name)) {
+                    $formErrors[] = 'اسم الريف لايمكن ان يكون فارغا';
+                }
+                if(strlen($reef_name)<4) {
+                    $formErrors[] = 'اسم الريف لايمكن ان يكون اقل من 4 حروف';
+                }
+                if(empty($company_id)) {
+                    $formErrors[] = 'اسم الشركة لايمكن ان يكون فارغا';
+                }
                 
 
-                $stmt = $db->prepare('UPDATE reefs SET reef_name = ? , company_id = ? WHERE reef_id = '. $id);
-                $stmt->execute(array($reef_name,$company_id));
-                echo '<div class="alert alert-success" role="alret"> تم حفظ بيانات' . $stmt->rowCount() . 'ريف جديد</div>';
-                echo '<a href="reefs.php?page=1" class=" btn btn-group-vertical"> رجوع الي صفحة الأرياف</a>';
+                foreach($formErrors as $error) {
+                    echo '<div class="alert alert-warning" role="alert">' . 
+                    $error
+                  . '</div>';
+                }              
+                
+                if(empty($formErrors)) {
+                    $stmt = $db->prepare('UPDATE reefs SET reef_name = ? , company_id = ? WHERE reef_id = '. $id);
+                    $stmt->execute(array($reef_name,$company_id));
+                    echo '<div class="alert alert-success" role="alret"> تم حفظ بيانات' . $stmt->rowCount() . 'ريف جديد</div>';
+                    echo '<a href="reefs.php?page=1" class=" btn btn-group-vertical"> رجوع الي صفحة الأرياف</a>';
+                }
+
+                
                 
             } else {
                 echo 'You can\'t browse this page directly';
@@ -228,16 +250,36 @@ if (isset($_SESSION['username'])) {
                 $reef_name = $_POST['reef_name'];
                 $company_id = $_POST['company_id'];
                
+                $formErrors = array();
 
-                $stmt = $db->prepare('INSERT INTO reefs (company_id,reef_name) values (:company_id, :reef_name)');
-                $stmt->execute(array(
-                    ':company_id' => $company_id,
-                    ':reef_name' => $reef_name
-                    ));
-                echo '<h1 class="page-title text-center"> تم الحفظ </h1>';
-                echo '<div class="alert alert-success" role="alret"> تم حفظ بيانات' . $stmt->rowCount() . 'ريف جديد</div>';
-                echo '<a href="reefs.php?page=1" class=" btn btn-group-vertical"> رجوع الي صفحة الأرياف</a>';
-                echo '<a href="reefs.php?action=Add" class=" btn btn-light">أضف قطعة أخري   </a>';
+                if(empty($reef_name)) {
+                    $formErrors[] = 'اسم الريف لايمكن ان يكون فارغا';
+                }
+                if(strlen($reef_name)<4) {
+                    $formErrors[] = 'اسم الشركة لايمكن ان يكون اقل من 4 حروف';
+                }
+                if(empty($company_id)) {
+                    $formErrors[] = 'اسم الشركة لايمكن ان يكون فارغا';
+                }
+                
+
+                foreach($formErrors as $error) {
+                    echo '<div class="alert alert-warning" role="alert">' . 
+                    $error
+                  . '</div>';
+                }              
+                
+                if(empty($formErrors)) {
+                    $stmt = $db->prepare('INSERT INTO reefs (company_id,reef_name) values (:company_id, :reef_name)');
+                    $stmt->execute(array(
+                        ':company_id' => $company_id,
+                        ':reef_name' => $reef_name
+                        ));
+                    echo '<h1 class="page-title text-center"> تم الحفظ </h1>';
+                    echo '<div class="alert alert-success" role="alret"> تم حفظ بيانات' . $stmt->rowCount() . 'ريف جديد</div>';
+                    echo '<a href="reefs.php?page=1" class=" btn btn-group-vertical"> رجوع الي صفحة الأرياف</a>';
+                    echo '<a href="reefs.php?action=Add" class=" btn btn-light">أضف قطعة أخري   </a>';
+                }
             } else {
                 header('Location: reefs.php');
                 exit();

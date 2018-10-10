@@ -165,12 +165,31 @@ if (isset($_SESSION['username'])) {
 
                 $id = $_GET['id'];
                 $company_name = $_POST['company_name'];
+
+                $formErrors = array();
+
+                if(empty($company_name)) {
+                    $formErrors[] = 'اسم الشركة لايمكن ان يكون فارغا';
+                }
+                if(strlen($company_name)<3) {
+                    $formErrors[] =  'اسم الريف يجب ان يكون اكثر من 3 حروف';
+                }
                 
 
-                $stmt = $db->prepare('UPDATE company SET company_name = ? WHERE company_id = '. $id);
-                $stmt->execute(array($company_name));
-                echo '<div class="alert alert-success" role="alret"> تم حفظ بيانات' . $stmt->rowCount() . 'ريف جديد</div>';
-                echo '<a href="company.php?page=1" class=" btn btn-group-vertical"> رجوع الي صفحة الشركات</a>';
+                foreach($formErrors as $error) {
+                    echo '<div class="alert alert-warning" role="alert">' . 
+                    $error
+                  . '</div>';
+                }
+                if(empty($formErrors)) {
+                    $stmt = $db->prepare('UPDATE company SET company_name = ? WHERE company_id = '. $id);
+                    $stmt->execute(array($company_name));
+                    echo '<div class="alert alert-success" role="alret"> تم حفظ بيانات' . $stmt->rowCount() . 'ريف جديد</div>';
+                    echo '<a href="company.php?page=1" class=" btn btn-group-vertical"> رجوع الي صفحة الشركات</a>';
+                }
+                
+
+                
                 
             } else {
                 echo 'You can\'t browse this page directly';
@@ -183,14 +202,33 @@ if (isset($_SESSION['username'])) {
                 $pageTitle = "إضافة شركة جديد";
                 $company_name = $_POST['company_name'];
                
+                
 
-                $stmt = $db->prepare('INSERT INTO company (company_name) values (:company)');
-                $stmt->execute(array(
-                    ':company' => $company_name,
-                    ));
-                echo '<h1 class="page-title text-center"> تم الحفظ </h1>';
-                echo '<div class="alert alert-success" role="alret"> تم حفظ بيانات' . $stmt->rowCount() . 'شركة جديدة</div>';
-                echo '<a href="company.php?page=1" class=" btn btn-group-vertical"> رجوع الي الشركات</a>';
+                $formErrors = array();
+
+                if(empty($company_name)) {
+                    $formErrors[] = 'اسم الشركة لايمكن ان يكون فارغا';
+                }
+                if(strlen($company_name)<3) {
+                    $formErrors[] =  'اسم الريف يجب ان يكون اكثر من 3 حروف';
+                }
+                
+
+                foreach($formErrors as $error) {
+                    echo '<div class="alert alert-warning" role="alert">' . 
+                    $error
+                  . '</div>';
+                }
+                if(empty($formErrors)) {
+                    $stmt = $db->prepare('INSERT INTO company (company_name) values (:company)');
+                    $stmt->execute(array(
+                        ':company' => $company_name,
+                        ));
+                    echo '<h1 class="page-title text-center"> تم الحفظ </h1>';
+                    echo '<div class="alert alert-success" role="alret"> تم حفظ بيانات' . $stmt->rowCount() . 'شركة جديدة</div>';
+                    echo '<a href="company.php?page=1" class=" btn btn-group-vertical"> رجوع الي الشركات</a>';
+                }
+                
             } else {
                 header('Location: company.php');
                 exit();

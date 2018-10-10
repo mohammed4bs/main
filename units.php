@@ -131,8 +131,8 @@ if (isset($_SESSION['username'])) {
                     </div>
                     <div class="form-group col-6">
                         <label class="col-form-label col-4"> إسم الريف</label>
-                        <select class="custom-select" name="reef_id">
-                            <option selected>اختر ريف</option>
+                        <select class="custom-select" name="reef_id" required>
+                            <option value='' selected>اختر ريف</option>
                             <?php $stmt = $db->prepare('SELECT * FROM reefs');
                               $stmt->execute();
                               $reefs = $stmt->fetchAll();  
@@ -171,16 +171,16 @@ if (isset($_SESSION['username'])) {
                     </div>
                     <div class="form-group col-6">
                         <label class="col-form-label col-4"> إسم الشركة</label>
-                        <select class="custom-select" name="reef_id">
+                        <select class="custom-select" required name="reef_id" required>
                         <?php $stmt = $db->prepare('SELECT * FROM reefs WHERE reef_id = ? LIMIT 1');
                               $stmt->execute(array($row['reef_id']));
-                              $reef = $stmt->fetch();  ?>
-                            <option value='<?php $row['reef_id'] ?>' selected><?php echo $reef['reef_name'];  ?> </option>
+                              $reef = $stmt->fetch();  
+                            echo '<option value="' . $row['reef_id']  . '" selected>' . $reef['reef_name'] . '</option>'
+                            ?>
                         
                         
-                        
-                            <?php $stmt = $db->prepare('SELECT * FROM reefs');
-                              $stmt->execute();
+                            <?php $stmt = $db->prepare('SELECT * FROM reefs WHERE reef_id != ?');
+                              $stmt->execute(array($row['reef_id']));
                               $reefs = $stmt->fetchAll();  
                               
                               foreach ($reefs as $reef) {
@@ -206,12 +206,32 @@ if (isset($_SESSION['username'])) {
                 $id = $_GET['id'];
                 $unit_name = $_POST['unit_name'];
                 $reef_id = $_POST['reef_id'];
-                
 
-                $stmt = $db->prepare('UPDATE units SET unit_name = ? , reef_id = ? WHERE unit_id = '. $id);
-                $stmt->execute(array($unit_name,$reef_id));
-                echo '<div class="alert alert-success" role="alret"> تم حفظ بيانات' . $stmt->rowCount() . 'قطعة جديد</div>';
-                echo '<a href="units.php?page=1" class=" btn btn-group-vertical"> رجوع الي صفحة الأراضي</a>';
+                $formErrors = array();
+
+                if(empty($unit_name)) {
+                    $formErrors[] = 'اسم القطعة لايمكن ان يكون فارغا';
+                }
+                if(strlen($unit_name)<2) {
+                    $formErrors[] = 'اسم القطعة لايمكن ان يكون اقل من 2 حروف';
+                }
+   
+                if(empty($reef_id)) {
+                    $formErrors[] = 'اسم الريف لايمكن ان يكون فارغا';
+                }
+
+                foreach($formErrors as $error) {
+                    echo '<div class="alert alert-warning" role="alert">' . 
+                    $error
+                  . '</div>';
+                }      
+                if (empty($formErrors)) {
+                    $stmt = $db->prepare('UPDATE units SET unit_name = ? , reef_id = ? WHERE unit_id = '. $id);
+                    $stmt->execute(array($unit_name,$reef_id));
+                    echo '<div class="alert alert-success" role="alret"> تم حفظ بيانات' . $stmt->rowCount() . 'قطعة جديد</div>';
+                    echo '<a href="units.php?page=1" class=" btn btn-group-vertical"> رجوع الي صفحة الأراضي</a>';
+                }
+                
                 
             } else {
                 echo 'You can\'t browse this page directly';
@@ -225,15 +245,34 @@ if (isset($_SESSION['username'])) {
                 $unit_name = $_POST['unit_name'];
                 $reef_id = $_POST['reef_id'];
                
+                $formErrors = array();
 
-                $stmt = $db->prepare('INSERT INTO units (unit_name,reef_id) values (:unit_name , :reef_id)');
-                $stmt->execute(array(
-                    ':unit_name' => $unit_name,
-                    ':reef_id' => $reef_id
-                    ));
-                echo '<h1 class="page-title text-center"> تم الحفظ </h1>';
-                echo '<div class="alert alert-success" role="alret"> تم حفظ بيانات' . $stmt->rowCount() . 'قطعة جديد</div>';
-                echo '<a href="units.php?page=1" class=" btn btn-group-vertical"> رجوع الي صفحة الأراضي</a>';
+                if(empty($unit_name)) {
+                    $formErrors[] = 'اسم القطعة لايمكن ان يكون فارغا';
+                }
+                if(strlen($unit_name)<2) {
+                    $formErrors[] = 'اسم القطعة لايمكن ان يكون اقل من 2 حروف';
+                }
+                if(empty($reef_id)) {
+                    $formErrors[] = 'اسم الريف لايمكن ان يكون فارغا';
+                }
+                
+
+                foreach($formErrors as $error) {
+                    echo '<div class="alert alert-warning" role="alert">' . 
+                    $error
+                  . '</div>';
+                }      
+                if (empty($formErrors)) {
+                    $stmt = $db->prepare('INSERT INTO units (unit_name,reef_id) values (:unit_name , :reef_id)');
+                    $stmt->execute(array(
+                        ':unit_name' => $unit_name,
+                        ':reef_id' => $reef_id
+                        ));
+                    echo '<h1 class="page-title text-center"> تم الحفظ </h1>';
+                    echo '<div class="alert alert-success" role="alret"> تم حفظ بيانات' . $stmt->rowCount() . 'قطعة جديد</div>';
+                    echo '<a href="units.php?page=1" class=" btn btn-group-vertical"> رجوع الي صفحة الأراضي</a>';
+                }
             } else {
                 header('Location: units.php');
                 exit();

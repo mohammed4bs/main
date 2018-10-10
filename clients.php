@@ -138,7 +138,7 @@ if (isset($_SESSION['username'])) {
                 <div class="row">
                     <div class="form-group col-6">
                         <label class="col-form-label col-4"> الايميل</label>
-                        <input type="email" class="form-control col-8" name='email' required />
+                        <input type="email" class="form-control col-8" name='email'  />
                     </div>
                     <div class="form-group col-6">
                         <label class="col-form-label col-4"> العنوان</label>
@@ -202,11 +202,46 @@ if (isset($_SESSION['username'])) {
                 $email = $_POST['email'];
                 $address = $_POST['address'];
 
-                $stmt = $db->prepare('UPDATE clients SET client_name = ? , phone = ? , email = ? , address = ? WHERE client_id = '. $id);
-                $stmt->execute(array($client_name , $phone, $email , $address));
-                echo '<div class="alert alert-success" role="alret"> تم حفظ بيانات' . $stmt->rowCount() . 'عميل جديد</div>';
-                echo '<a href="clients.php?page=1" class=" btn btn-group-vertical"> رجوع الي صفحة العملاء</a>';
-                
+                $formErrors = array();
+
+                if(empty($client_name)) {
+                    $formErrors[] = 'اسم العميل لايمكن ان يكون فارغا';
+                }
+                if(empty($phone)) {
+                    $formErrors[] =  'تليفون العميل لايمكن ان يكون فارغا';
+                }
+                if(empty($address)) {
+                    $formErrors[] =  'عنوان العميل لايمكن ان يكون فارغا';
+                }
+
+                if(strlen($client_name) < 4) {
+                    $formErrors[] = 'اسم العميل لايمكن ان يكون اقل من 4 حروف';
+                }
+                if(strlen($client_name) > 80) {
+                    $formErrors[] = 'اسم العميل لايمكن ان يكون اكثر من 80 حرف';
+                }
+                if(strlen($phone) < 10) {
+                    $formErrors[] =  'تليفون العميل لايمكن ان يكون اصغر من 10 ارقام';
+                }
+                if(strlen($phone) > 10) {
+                    $formErrors[] =  'تليفون العميل لايمكن ان يكون اكبر من 10 ارقام';
+                }
+                if(strlen($address) < 10) {
+                    $formErrors[] =  'عنوان العميل لايمكن ان اصغر من 10 حروف ';
+                }
+
+                foreach($formErrors as $error) {
+                    echo '<div class="alert alert-warning" role="alert">' . 
+                    $error
+                  . '</div>';
+                }
+                if (empty($formErrors)) {
+
+                    $stmt = $db->prepare('UPDATE clients SET client_name = ? , phone = ? , email = ? , address = ? WHERE client_id = '. $id);
+                    $stmt->execute(array($client_name , $phone, $email , $address));
+                    echo '<div class="alert alert-success" role="alret"> تم حفظ بيانات' . $stmt->rowCount() . 'عميل جديد</div>';
+                    echo '<a href="clients.php?page=1" class=" btn btn-group-vertical"> رجوع الي صفحة العملاء</a>';
+                }
             } else {
                 echo 'You can\'t browse this page directly';
             }
@@ -221,15 +256,51 @@ if (isset($_SESSION['username'])) {
                 $email = $_POST['email'];
                 $address = $_POST['address'];
 
-                $stmt = $db->prepare('INSERT INTO clients (client_name,phone,email,address) values (:client , :phone, :email ,:address)');
-                $stmt->execute(array(
-                    'client' => $client_name,
-                    'phone' => $phone,
-                    'email' => $email,
-                    'address' => $address));
-                echo '<h1 class="page-title text-center"> تم الحفظ </h1>';
-                echo '<div class="alert alert-success" role="alret"> تم حفظ بيانات' . $stmt->rowCount() . 'عميل جديد</div>';
-                echo '<a href="clients.php?page=1" class=" btn btn-group-vertical"> رجوع الي صفحة العملاء</a>';
+                $formErrors = array();
+
+                if(empty($client_name)) {
+                    $formErrors[] = 'اسم العميل لايمكن ان يكون فارغا';
+                }
+                if(empty($phone)) {
+                    $formErrors[] =  'تليفون العميل لايمكن ان يكون فارغا';
+                }
+                if(empty($address)) {
+                    $formErrors[] =  'عنوان العميل لايمكن ان يكون فارغا';
+                }
+
+                if(strlen($client_name) < 4) {
+                    $formErrors[] = 'اسم العميل لايمكن ان يكون اقل من 4 حروف';
+                }
+                if(strlen($client_name) > 80) {
+                    $formErrors[] = 'اسم العميل لايمكن ان يكون اكثر من 80 حرف';
+                }
+                if(strlen($phone) < 10) {
+                    $formErrors[] =  'تليفون العميل لايمكن ان يكون اصغر من 10 ارقام';
+                }
+                if(strlen($phone) > 10) {
+                    $formErrors[] =  'تليفون العميل لايمكن ان يكون اكبر من 10 ارقام';
+                }
+                if(strlen($address) < 10) {
+                    $formErrors[] =  'عنوان العميل لايمكن ان اصغر من 10 حروف ';
+                }
+
+                foreach($formErrors as $error) {
+                    echo '<div class="alert alert-warning" role="alert">' . 
+                    $error
+                  . '</div>';
+                }
+                if (empty($formErrors)) {
+                    $stmt = $db->prepare('INSERT INTO clients (client_name,phone,email,address) values (:client , :phone, :email ,:address)');
+                    $stmt->execute(array(
+                        'client' => $client_name,
+                        'phone' => $phone,
+                        'email' => $email,
+                        'address' => $address));
+                    echo '<h1 class="page-title text-center"> تم الحفظ </h1>';
+                    echo '<div class="alert alert-success" role="alret"> تم حفظ بيانات' . $stmt->rowCount() . 'عميل جديد</div>';
+                    echo '<a href="clients.php?page=1" class=" btn btn-group-vertical"> رجوع الي صفحة العملاء</a>';
+                }
+                
             } else {
                 header('Location: clients.php');
                 exit();
