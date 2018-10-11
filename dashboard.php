@@ -80,13 +80,14 @@
                     $test = strtotime($row['end_date']) - strtotime(date('y-m-d'));
                     echo $test . '<br>'; */
                     
+                
                     $stmtEl = $db->prepare('SELECT * FROM elec WHERE contract_id = ?');
                     $stmtEl->execute(array($client_fetched['contract_id']));
                     $elecT = $stmtEl->fetch();
-                    echo $filteredData['contract_id'];
-                    echo '<pre>';
-                    print_r($elecT);
-                    echo '</pre>';
+                    //echo $filteredData['contract_id'];
+                    //echo '<pre>';
+                    //print_r($elecT);
+                    //echo '</pre>';
 
                     
                     $conUnits += array($u['unit_id'] => $u + $filteredData + $row + $client_fetched + $elecT );
@@ -144,16 +145,37 @@
                 <?php
                     foreach($conUnits as $unit) {
                             // Get reef name instead of reef_id
-                             $s1 = $db->prepare('SELECT reef_name FROM reefs WHERE reef_id = ?');
-                             $s1->execute(array($unit['reef_id']));
-                             $f1 = $s1->fetch();
+                            $reefs = [];
+                            $conUnit = [];
+                            
+
+                            $stmtUnits = $db->prepare('SELECT unit_id FROM contract_units WHERE contract_id = ?');
+                            $stmtUnits->execute(array($unit['contract_id'])); 
+                            $unitCount = $stmtUnits->rowCount();
+                            //echo '<h1>' . $unitCount . '</h1>';
+                            $units = $stmtUnits->fetchAll();
+                                foreach($units as $u) {
+                                    $stmt = $db->prepare('SELECT unit_name, reef_id FROM units WHERE unit_id = ?');
+                                    $stmt->execute(array($u['unit_id']));
+                                    $unit_name = $stmt->fetch();
+                                    $stmtR = $db->prepare('SELECT reef_name FROM reefs WHERE reef_id = ?');
+                                    $stmtR->execute(array($unit_name['reef_id']));
+                                    $reef_name = $stmtR->fetch();
+                                    //$conUnits += array($unit_names + $reef_names);
+                                    array_push($conUnit,$unit_name['unit_name']);
+                                    array_push($reefs,$reef_name['reef_name']);
+                                    
+                                }
+                            $unit_names = implode('-', $conUnit);
+                            $reef_names = implode('-', $reefs);
+
                              $s2 = $db->prepare('SELECT client_name FROM clients WHERE client_id = ?');
                              $s2->execute(array($unit['client_id']));
                              $f2 = $s2->fetch();
                         echo '<tr><td>'  . $unit['unit_id'] .
-                             '</td><td>' . $unit['unit_name'] .
+                             '</td><td>' . $unit_names .
                              
-                             '</td><td>' . $f1['reef_name'] .
+                             '</td><td>' . $reef_names .
                              '</td><td>' .$f2['client_name']  .
                              '</td><td>' . $unit['contract_id'] .
                              '</td><td><b> ' . $unit['total_space'] . ' </b>فدان' . 
@@ -166,9 +188,9 @@
             </tbody>
             </table>
             <?php
-            echo '<pre>';
-            print_r($conUnits);
-            echo '</pre>';
+            //echo '<pre>';
+            //print_r($conUnits);
+            //echo '</pre>';
         }
         ?>
             
@@ -186,7 +208,7 @@
             
             foreach ($data as $c) {
                 
-                echo $c['client_id'];
+                //echo $c['client_id'];
                 $stmt = $db->prepare('SELECT * FROM contracts c 
                                      INNER JOIN maint m on c.contract_id = m.contract_id
                                       WHERE client_id = ?');
@@ -238,11 +260,11 @@
                     //print_r($reefs);
                     //echo var_dump($reefs);
 
-                    echo '</pre>';
+                    //echo '</pre>';
                     //print_r($conUnit);
                     $conClients += array($c['client_id'] => $result + $elecFetch);
                     //echo '<pre>';
-                    print_r($conClients);
+                    //print_r($conClients);
                     //echo '</pre>'; 
                     
                     
@@ -250,9 +272,9 @@
 
             }
             
-            echo '******************************************<pre>';
+            //echo '******************************************<pre>';
             //print_r($conClients);
-            echo '</pre>'
+            //echo '</pre>'
             ?>
 
 
@@ -314,12 +336,8 @@
                                 $stmtUnits = $db->prepare('SELECT unit_id FROM contract_units WHERE contract_id = ?');
                                 $stmtUnits->execute(array($r['contract_id']));
                                 $unitCount = $stmtUnits->rowCount();
-                                echo '<h1>' . $unitCount . '</h1>';
-                                
-                            
-                                
-                                
-                                    $units = $stmtUnits->fetchAll();
+                                //echo '<h1>' . $unitCount . '</h1>';
+                                $units = $stmtUnits->fetchAll();
                                     foreach($units as $unit) {
                                         $stmt = $db->prepare('SELECT unit_name, reef_id FROM units WHERE unit_id = ?');
                                         $stmt->execute(array($unit['unit_id']));
