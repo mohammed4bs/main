@@ -19,7 +19,7 @@ if (isset($_SESSION['username'])) {
         
         // Get all units==================================================
         $limit = 4; // rows per page limit ----------------------------
-        $stmt = $db->prepare("SELECT * FROM contracts INNER JOIN contract_units ON contracts.contract_id = contract_units.contract_id ");
+        $stmt = $db->prepare("SELECT * FROM contracts"); // INNER JOIN contract_units ON contracts.contract_id = contract_units.contract_id 
         $stmt->execute();
         $rows = $stmt->fetchAll();
         //print_r($rows);
@@ -34,7 +34,7 @@ if (isset($_SESSION['username'])) {
             $page = $_GET['page'];
         }
         $starting_limit = ($page-1)*$limit;
-        $show = "SELECT * FROM contracts INNER JOIN contract_units ON contracts.contract_id = contract_units.contract_id ORDER BY contracts.contract_id ASC LIMIT $starting_limit, $limit";
+        $show = "SELECT * FROM contracts  ORDER BY contract_id ASC LIMIT $starting_limit, $limit";
         $rows = $db->prepare($show);
         $rows->execute();
         
@@ -55,6 +55,9 @@ if (isset($_SESSION['username'])) {
                     </th>
                     <th>
                         اسم القطعة
+                    </th>
+                    <th>
+                        اسم الريف
                     </th>
                     <th>
                         نوع العقد
@@ -93,6 +96,31 @@ if (isset($_SESSION['username'])) {
                             $contract_kind  = 'تنازل';
                         }
 
+
+                        // Get unit names
+                        $conUnits = [];
+                        $reefs = [];
+                        $stmtUnits = $db->prepare('SELECT unit_id FROM contract_units WHERE contract_id = ?');
+                        $stmtUnits->execute(array($row['contract_id']));
+                        $unitCount = $stmtUnits->rowCount();
+                        //echo '<h1>' . $unitCount . '</h1>';
+                        $units = $stmtUnits->fetchAll();
+                            foreach($units as $unit) {
+                                $stmt = $db->prepare('SELECT unit_name, reef_id FROM units WHERE unit_id = ?');
+                                $stmt->execute(array($unit['unit_id']));
+                                $unit_name = $stmt->fetch();
+                                $stmtR = $db->prepare('SELECT reef_name FROM reefs WHERE reef_id = ?');
+                                $stmtR->execute(array($unit_name['reef_id']));
+                                $reef_name = $stmtR->fetch();
+                                //$conUnits += array($unit_names + $reef_names);
+                                array_push($conUnits,$unit_name['unit_name']);
+                                array_push($reefs,$reef_name['reef_name']);
+                                
+                            }
+                        $unit_names = implode('-', $conUnits);
+                        $reef_names = implode('-', $reefs);
+
+
                         $stmt = $db->prepare('SELECT unit_space FROM contract_units WHERE contract_id = ?');
                         $stmt->execute(array($row['contract_id']));
                         $unit_spaces = $stmt->fetchAll();
@@ -107,7 +135,8 @@ if (isset($_SESSION['username'])) {
                             echo '<td>' . $row['contract_id'] .  '</td><td>'
                              . $row['description'] . '</td><td>' 
                              . $client['client_name'] .
-                            '</td><td>' . $row['unit_id'] . 
+                            '</td><td>' . $unit_names .
+                            '</td><td>' . $reef_names . 
                             '</td><td>' . $contract_kind  . 
                             '</td><td>' . $total_space . 
                             '</td><td>' . 
@@ -168,7 +197,7 @@ if (isset($_SESSION['username'])) {
         <?php
         
 
-        include $tbl . 'footer.php';
+        
         } elseif ($action == 'Add') { ?>
             <h1 class="page-title text-center"> إضافة عقد جديد </h1>
 
@@ -183,7 +212,7 @@ if (isset($_SESSION['username'])) {
                         <label class="col-form-label col-4"> إسم العميل</label>
                         <input id="search" onkeyup="filter()" class="form-control" autocomplete="off" />
                         <select id="select" size="5" class="custom-select" name="client_id">
-                            <option selected>. . . . </option>
+                            <option selected value="">. . . . </option>
                         
                         
                         
@@ -204,7 +233,7 @@ if (isset($_SESSION['username'])) {
                     <div class="form-group col-2">
                         <label class="col-form-label col-8">اسم الشركة</label>
                         <select class="custom-select" id="comp" name="company_id">
-                            <option selected>اختر شركة</option>
+                            <option value="" selected>اختر شركة</option>
                             
                             <?php $stmt = $db->prepare('SELECT * FROM company');
                             $stmt->execute();
@@ -236,7 +265,7 @@ if (isset($_SESSION['username'])) {
                     <div class="form-group col-2">
                         <label class="col-form-label col-8"> رقم القطعة</label>
                         <select class="custom-select" id="unit" name="unit_id">
-                            <option selected>اختر قطعة</option>
+                            <option value="" selected>اختر قطعة</option>
                         
                         
                         
@@ -253,7 +282,7 @@ if (isset($_SESSION['username'])) {
                     <div class="form-group col-6">
                         <label class="col-form-label col-4"> نوع العقد</label>
                         <select class="custom-select" name="contract_kind">
-                            <option selected>نوع العقد</option>
+                            <option value="" selected>نوع العقد</option>
                         
                         
                         
@@ -269,7 +298,7 @@ if (isset($_SESSION['username'])) {
                     <div class="form-group col-4">
                         <label class="col-form-label col-4"> المساحة</label>
                         <select class="custom-select space" name="space">
-                              <option> اختر المساحة </option>
+                              <option value=""> اختر المساحة </option>
                             
                         </select>
                     </div>
@@ -528,13 +557,13 @@ if (isset($_SESSION['username'])) {
                             $stmt = $db->prepare('SELECT * FROM clients WHERE client_id = ?');
                               $stmt->execute(array($row['client_id']));
                               $client = $stmt->fetch();  
-                              ?>
-                            <option selected value="<?php echo $client['client_id'] ?>"> <?php echo $client['client_name']; ?></option>
+                              
+                            echo '<option selected value="' .  $client['client_id'] . '">'  . $client['client_name'] . '</option>';
+                            ?>
                         
                         
-                        
-                            <?php $stmt = $db->prepare('SELECT * FROM clients');
-                              $stmt->execute();
+                            <?php $stmt = $db->prepare('SELECT * FROM clients WHERE client_id != ?');
+                              $stmt->execute(array($client['client_id']));
                               $clients = $stmt->fetchAll();  
                               
                               foreach ($clients as $client) {
@@ -585,9 +614,9 @@ if (isset($_SESSION['username'])) {
                             $stmt = $db->prepare('SELECT unit_name FROM units WHERE unit_id = ?');
                             $stmt->execute(array($row['unit_id']));
                             $unit = $stmt->fetch();
-                        ?>
-                            <option selected value="<?php $row['unit_id'] ?>"><?php echo $unit['unit_name']; ?> </option>
                         
+                            echo '<option selected value="' . $row['unit_id'] . '">' . $unit['unit_name'] . '</option>';
+                            ?>
                         
                         
                             <?php /*$stmt = $db->prepare('SELECT * FROM units');
@@ -607,18 +636,13 @@ if (isset($_SESSION['username'])) {
                             <?php 
                             if ($row['contract_kind'] == 0) {
                                 echo '<option selected value="' .  $row['contract_kind'] . '">شراء من الشركة</option>';
+                                echo '<option value="1">تنازل من عميل</option>';
                             }else {
+                                echo '<option value="0">شراء من الشركة</option>';
                                 echo '<option selected value="' .  $row['contract_kind'] . '">تنازل من عميل</option>';
                             }  ?> 
                             
                         
-                        
-                        
-                            
-                            <option value="0">شراء من الشركة</option>
-                            <option value="1">تنازل من عميل</option>
-                             
-                             
                         </select>
                     </div>
                 </div>
@@ -643,6 +667,35 @@ if (isset($_SESSION['username'])) {
                         
                         <input type="date" class="form-control col-8" name="date" value="<?php echo $row['contract_date'] ?>" />
                     </div>
+                    
+                    
+                </div>
+                <div class="row">
+                    <div class="form-group col-4">
+                        <?php
+                        $stmt = $db->prepare('SELECT balance FROM maint WHERE contract_id = ?');
+                        $stmt->execute(array($id));
+                        $blnc = $stmt->fetch(0);
+                        ?>
+                        <label class="col-form-label col-6"> رصيد الصيانة</label>
+                        
+                        <input type="text" class="form-control col-8" name="balance" value="<?php echo $blnc['balance'] ?>" />
+                    </div>
+                    <?php
+                        $stmt = $db->prepare('SELECT prev_reading, elec_balance FROM elec WHERE contract_id = ?');
+                        $stmt->execute(array($id));
+                        $elec = $stmt->fetch();
+                    ?>
+                    <div class="form-group col-4">
+                        <label class="col-form-label col-6"> آخر قرآءة للكهرباء</label>
+                        
+                        <input type="text" class="form-control col-8" name="prev_reading" value="<?php echo $elec['prev_reading'] ?>" />
+                    </div>
+                    <div class="form-group col-4">
+                        <label class="col-form-label col-6"> رصيد الكهرباء</label>
+                        
+                        <input type="text" class="form-control col-8" name="elec_balance" value="<?php echo $elec['elec_balance'] ?>" />
+                    </div>
                 </div>
             
                 <div class="form-group">
@@ -655,17 +708,128 @@ if (isset($_SESSION['username'])) {
         // Update Page Start ====================================================================================================================
         } elseif ($action == 'Update') {
             if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-                echo '<h1 class="page-title text-center"> تعديل بيانات عقد </h1>';
+                $pageTitle = "تعديل عقد جديد";
+                $cid = $_GET['id'];
+                // contracts table prop
+                $formErrors = array();
 
-                $id = $_GET['id'];
-                $unit_name = $_POST['unit_name'];
-                $reef_id = $_POST['reef_id'];
+                
+                $description = $_POST['description'];
+                $client_id = $_POST['client_id'];
+                $contract_kind = $_POST['contract_kind'];
+                $space = $_POST['space'];
+                $date = $_POST['date'];
+                if(strlen($description) == 0) {
+                    $formErrors[] = 'وصف العقد لا يمكن أن يكون فارغا ';
+                }
+                if(strlen($client_id) == 0) {
+                    $formErrors[] = 'اسم العميل لا يمكن أن يكون فارغا ';
+                }
+                if(strlen($contract_kind) == 0) {
+                    $formErrors[] = 'نوع العقد لا يمكن أن يكون فارغا ';
+                }
+                if(strlen($date) == 0) {
+                    $formErrors[] = 'تاريخ العقد لا يمكن أن يكون فارغا ';
+                }
+                if(strlen($space) == 0) {
+                    $formErrors[] = 'مساحة العقد لا يمكن أن يكون فارغا ';
+                }
+               
+                // maintainance table prop
+                $start_date = $date;
+                $balance = $_POST['balance'];
+                $end_date = date("Y-m-d", strtotime(date("Y-m-d", strtotime($start_date)). "next day"));
+                
+                
+                if(strlen($balance) == 0) {
+                    $formErrors[] = 'رصيد الصيانة لا يمكن أن يكون فارغا ';
+                }
+                
+                echo $end_date;
+
+                // elec table prop
+                $elec_balance = $_POST['elec_balance'];
+                $prev_reading = $_POST['prev_reading'];
                 
 
-                $stmt = $db->prepare('UPDATE units SET unit_name = ? , reef_id = ? WHERE unit_id = '. $id);
-                $stmt->execute(array($unit_name,$reef_id));
-                echo '<div class="alert alert-success" role="alret"> تم حفظ بيانات' . $stmt->rowCount() . 'عقد جديد</div>';
-                echo '<a href="units.php?page=1" class=" btn btn-group-vertical"> رجوع الي صفحة الأراضي</a>';
+                if(strlen($elec_balance) == 0) {
+                    $formErrors[] = 'رصيد الكهرباء لا يمكن أن يكون فارغا ';
+                }
+                if(strlen($prev_reading) == 0) {
+                    $formErrors[] = 'آخر قرآءة لا يمكن أن تكون فارغا ';
+                }
+                // contract_units prop
+                $unit_id = $_POST['unit_id'];
+                $total_space = $space;
+                
+                if(strlen($unit_id) == 0) {
+                    $formErrors[] = ' اسم القطعة لا يمكن أن يكون فارغا ';
+                }
+                
+                // calculate total space
+                $stmt = $db->prepare('SELECT unit_space FROM contract_units WHERE contract_id = ?');
+                        $stmt->execute(array($cid));
+                        $unit_spaces = $stmt->fetchAll();
+                        foreach($unit_spaces as $space) {
+                        $total_space += $space['unit_space'];
+                }
+                
+                foreach($formErrors as $error) {
+                    echo '<div class="alert alert-warning" role="alert">' . 
+                    $error
+                  . '</div>';
+                }             
+
+                if(empty($formErrors)) {
+                    // Insert contract tbl
+                    $stmt = $db->prepare('UPDATE contracts SET description = :descr, client_id = :cid,
+                    contract_kind = :conknd , total_space = :tsp , contract_date = :dt WHERE contract_id =  ');
+                    
+                    $stmt->execute(array(
+                        ':descr' => $description,
+                        ':cid' => $client_id,
+                        ':conknd' => $contract_kind,
+                        ':tsp' => $total_space,
+                        ':dt' => $date
+                    ));
+                    
+                    //$cont_id = $db->lastInsertId();
+                    
+                    // Insert contract_units tbl
+                    $stmtUnits = $db->prepare('UPDATE contract_units SET unit_id = :u,
+                    unit_space = :s WHERE contract_id = :last_id');
+                    $stmtUnits->execute(array(
+                        ':last_id' => $cid,
+                        ':u' => $unit_id,
+                        ':s' => $space
+                    ));
+
+                    // Insert Maintainance table
+                    $stmtMaint = $db->prepare('UPDATE maint SET 
+                    balance = :blc , start_date = :sdt, end_date = :edt WHERE contract_id = :coid'); 
+                    
+                    $stmtMaint->execute(array(
+                        ':blc'  => $balance,
+                        ':sdt'  => $date,
+                        ':edt'  => $end_date,
+                        ':coid' => $cid
+                    ));
+
+                    $stmtElec = $db->prepare('UPDATE elec SET 
+                    prev_reading = :prev, prev_reading_date = :prev_dt, elec_balance = :eblnc 
+                    WHERE contract_id = :con');
+                    
+                    $stmtElec->execute(array(
+                        ':con'      => $cid,
+                        ':prev'     => $prev_reading,
+                        ':prev_dt'  => date('Y-m-d'),
+                        ':eblnc'    => $elec_balance
+                    ));
+                    echo '<h1 class="page-title text-center"> تم الحفظ </h1>';
+                    echo '<div class="alert alert-success" role="alret"> تم تعديل بيانات' . $stmt->rowCount() . 'عقد جديد</div>';
+                    echo '<a href="contracts.php?page=1" class=" btn btn-group-vertical"> رجوع الي صفحة العقود</a>';
+                    echo '<a href="contracts.php?action=Add" class=" btn btn-secondary"> إضافة عقد آخر</a>';
+                }
                 
             } else {
                 echo 'You can\'t browse this page directly';
@@ -677,29 +841,60 @@ if (isset($_SESSION['username'])) {
             if($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $pageTitle = "إضافة عقد جديد";
                 // contracts table prop
+                $formErrors = array();
 
+                
                 $description = $_POST['description'];
                 $client_id = $_POST['client_id'];
                 $contract_kind = $_POST['contract_kind'];
                 $space = $_POST['space'];
                 $date = $_POST['date'];
+                if(strlen($description) == 0) {
+                    $formErrors[] = 'وصف العقد لا يمكن أن يكون فارغا ';
+                }
+                if(strlen($client_id) == 0) {
+                    $formErrors[] = 'اسم العميل لا يمكن أن يكون فارغا ';
+                }
+                if(strlen($contract_kind) == 0) {
+                    $formErrors[] = 'نوع العقد لا يمكن أن يكون فارغا ';
+                }
+                if(strlen($date) == 0) {
+                    $formErrors[] = 'تاريخ العقد لا يمكن أن يكون فارغا ';
+                }
+                if(strlen($space) == 0) {
+                    $formErrors[] = 'مساحة العقد لا يمكن أن يكون فارغا ';
+                }
                
                 // maintainance table prop
                 $start_date = $date;
                 $balance = $_POST['balance'];
-                $end_date = date("Y-m-d", strtotime(date("Y-m-d", strtotime($start_date)). "next day"));
+                $end_date = date("Y-m-d", strtotime(date("Y-m-d", strtotime($start_date)). "next month"));
+                
+                
+                if(strlen($balance) == 0) {
+                    $formErrors[] = 'رصيد الصيانة لا يمكن أن يكون فارغا ';
+                }
                 
                 echo $end_date;
 
                 // elec table prop
                 $elec_balance = $_POST['elec_balance'];
                 $prev_reading = $_POST['prev_reading'];
-                $rate = 1.45;
-
                 
+
+                if(strlen($elec_balance) == 0) {
+                    $formErrors[] = 'رصيد الكهرباء لا يمكن أن يكون فارغا ';
+                }
+                if(strlen($prev_reading) == 0) {
+                    $formErrors[] = 'آخر قرآءة لا يمكن أن تكون فارغا ';
+                }
                 // contract_units prop
                 $unit_id = $_POST['unit_id'];
                 $total_space = $space;
+                
+                if(strlen($unit_id) == 0) {
+                    $formErrors[] = ' اسم القطعة لا يمكن أن يكون فارغا ';
+                }
                 
                 // calculate total space
                 $stmt = $db->prepare('SELECT unit_space FROM contract_units WHERE contract_id = ?');
@@ -709,52 +904,61 @@ if (isset($_SESSION['username'])) {
                         $total_space += $space['unit_space'];
                 }
                 
-                // Insert contract tbl
-                $stmt = $db->prepare('INSERT INTO contracts (description,client_id,
-                contract_kind , total_space ,contract_date  ) values (:descr , :cid , 
-                :conknd , :tsp, :dt)');
-                
-                $stmt->execute(array(
-                    ':descr' => $description,
-                    ':cid' => $client_id,
-                    ':conknd' => $contract_kind,
-                    ':tsp' => $total_space,
-                    ':dt' => $date
-                ));
-                
-                $cont_id = $db->lastInsertId();
-                
-                // Insert contract_units tbl
-                $stmtUnits = $db->prepare('INSERT INTO contract_units (contract_id, unit_id,unit_space) VALUES (:last_id,:u,:s)');
-                $stmtUnits->execute(array(
-                    ':last_id' => $cont_id,
-                    ':u' => $unit_id,
-                    ':s' => $space
-                ));
+                foreach($formErrors as $error) {
+                    echo '<div class="alert alert-warning" role="alert">' . 
+                    $error
+                  . '</div>';
+                }             
 
-                // Insert Maintainance table
-                $stmtMaint = $db->prepare('INSERT INTO maint (contract_id ,balance , start_date, end_date) 
-                VALUES (:coid, :blc , :sdt, :edt)');
-                $stmtMaint->execute(array(
-                    ':coid' => $cont_id,
-                    ':blc'  => $balance,
-                    ':sdt'  => $date,
-                    ':edt'  => $end_date
-                ));
+                if(empty($formErrors)) {
+                    // Insert contract tbl
+                    $stmt = $db->prepare('INSERT INTO contracts (description,client_id,
+                    contract_kind , total_space ,contract_date  ) values (:descr , :cid , 
+                    :conknd , :tsp, :dt)');
+                    
+                    $stmt->execute(array(
+                        ':descr' => $description,
+                        ':cid' => $client_id,
+                        ':conknd' => $contract_kind,
+                        ':tsp' => $total_space,
+                        ':dt' => $date
+                    ));
+                    
+                    $cont_id = $db->lastInsertId();
+                    
+                    // Insert contract_units tbl
+                    $stmtUnits = $db->prepare('INSERT INTO contract_units (contract_id, unit_id,unit_space) VALUES (:last_id,:u,:s)');
+                    $stmtUnits->execute(array(
+                        ':last_id' => $cont_id,
+                        ':u' => $unit_id,
+                        ':s' => $space
+                    ));
 
-                $stmtElec = $db->prepare('INSERT INTO elec 
-                (contract_id , prev_reading, prev_reading_date, elec_balance) 
-                VALUES (:con,:prev,:prev_dt,:eblnc)');
-                $stmtElec->execute(array(
-                    ':con'      => $cont_id,
-                    ':prev'     => $prev_reading,
-                    ':prev_dt'  => date('Y-m-d'),
-                    ':eblnc'    => $elec_balance
-                ));
-                echo '<h1 class="page-title text-center"> تم الحفظ </h1>';
-                echo '<div class="alert alert-success" role="alret"> تم حفظ بيانات' . $stmt->rowCount() . 'عقد جديد</div>';
-                echo '<a href="contracts.php?page=1" class=" btn btn-group-vertical"> رجوع الي صفحة العقود</a>';
-                echo '<a href="contracts.php?action=Add" class=" btn btn-secondary"> إضافة عقد آخر</a>';
+                    // Insert Maintainance table
+                    $stmtMaint = $db->prepare('INSERT INTO maint (contract_id ,balance , start_date, end_date) 
+                    VALUES (:coid, :blc , :sdt, :edt)');
+                    $stmtMaint->execute(array(
+                        ':coid' => $cont_id,
+                        ':blc'  => $balance,
+                        ':sdt'  => $date,
+                        ':edt'  => $end_date
+                    ));
+
+                    $stmtElec = $db->prepare('INSERT INTO elec 
+                    (contract_id , prev_reading, prev_reading_date, elec_balance) 
+                    VALUES (:con,:prev,:prev_dt,:eblnc)');
+                    $stmtElec->execute(array(
+                        ':con'      => $cont_id,
+                        ':prev'     => $prev_reading,
+                        ':prev_dt'  => date('Y-m-d'),
+                        ':eblnc'    => $elec_balance
+                    ));
+                    echo '<h1 class="page-title text-center"> تم الحفظ </h1>';
+                    echo '<div class="alert alert-success" role="alret"> تم حفظ بيانات' . $stmt->rowCount() . 'عقد جديد</div>';
+                    echo '<a href="contracts.php?page=1" class=" btn btn-group-vertical"> رجوع الي صفحة العقود</a>';
+                    echo '<a href="contracts.php?action=Add" class=" btn btn-secondary"> إضافة عقد آخر</a>';
+                }
+                
             } else {
                 header('Location: contracts.php');
                 exit();
