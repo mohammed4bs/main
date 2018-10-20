@@ -50,7 +50,7 @@
             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                 <a class="dropdown-item" href="#">تغيير الباسوورد</a>
                 <a class="dropdown-item" href="logout.php">تسجيل الخروج</a>
-                <a class="dropdown-item" href="#">Something else here</a>
+                
             </div>
         </div>
     </div>
