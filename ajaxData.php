@@ -45,8 +45,9 @@ if (isset($_SESSION['username'])) {
                     foreach($un as $u) {
                         $sp += $u['unit_space'];
                     }
-                    if ($sp >= 1) {
+                    if ($sp > 0.5) {
                         echo '<option disabled  value="'.$unit['unit_id'].'">'.$unit['unit_name'].'</option>';
+                      
                     } else {
                         echo '<option  value="'.$unit['unit_id'].'">'.$unit['unit_name'].'</option>';    
                     }
@@ -80,7 +81,7 @@ if (isset($_SESSION['username'])) {
                     echo $sp;
                     if ($sp == 0) {
                         echo '<option> اختر المساحة </option>';
-                        '<option> echo $sp; </option>';
+                        //echo '<option> echo $sp; </option>';
                         echo '<option value="0.5">نصف فدان</option><option value="1"> فدان</option>';
                     } elseif ($sp == 0.5) {
                         echo '<option> اختر المساحة </option>';
