@@ -16,7 +16,22 @@
                             <div class="input-group-prepend">
                                 <span class="input-group-text">بحث برقم القطعة</span>
                             </div>
-                            <input type="text" aria-label="رقم القطعة" name="unit" class="form-control">
+                            <input style="margin-left:5px;" required type="text" placeholder="رقم القطعة" aria-label="رقم القطعة" name="unit" class="form-control">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">الريف  </span>
+                            </div>
+                            <select name="reef" required class="form-control">
+                                <option value=""> اختر ريف</option>
+                                <?php 
+                                    $stmt = $db->prepare('SELECT reef_id,reef_name FROM reefs');
+                                    $stmt->execute();
+                                    $reef = $stmt->fetchAll();
+                                    
+                                    foreach($reef as $r) {
+                                        echo '<option value="' . $r['reef_id'] . '">' . $r['reef_name'] . '</option>';
+                                    }
+                                ?>
+                            </select>
                             <div class="input-group-prepend">
                                 <input type="submit" class="btn btn-outline-secondary" value="بحث"/>
                             </div>
@@ -46,8 +61,10 @@
         
         if (isset($_GET['unit'])) {
             $unit = $_GET['unit'];
-            $stmt = $db->prepare('SELECT * FROM units WHERE unit_name like ? OR unit_id like ?');
-            $stmt->execute(array('%' . $unit . '%' , '%' . $unit . '%' ));
+            $reef = $_GET['reef'];
+            echo $reef;
+            $stmt = $db->prepare('SELECT * FROM units WHERE unit_name like ? OR unit_id like ? AND reef_id = ?');
+            $stmt->execute(array('%' . $unit . '%' , '%' . $unit . '%' , $reef));
             $rowC = $stmt->rowCount();
             $data = $stmt->fetchAll();
             
@@ -55,12 +72,13 @@
             foreach ($data as $u) {
                 //echo $u['unit_id'] . '<br>';
                 // Get all units that exist in contracts
-                $stmt = $db->prepare('SELECT * FROM contract_units WHERE unit_id = ?');
-                $stmt->execute(array($u['unit_id']));
+                $stmt = $db->prepare('SELECT * FROM contract_units INNER JOIN units ON contract_units.unit_id = 
+                units.unit_id WHERE units.unit_id = ? AND units.reef_id = ?');
+                $stmt->execute(array($u['unit_id'], $reef));
                 $count = $stmt->rowCount();
                 if ($count > 0) {
                     $filteredData = $stmt->fetch();
-
+                    //print_r($filteredData);
                     // Get Maint info for that contract
                     $stmt = $db->prepare('SELECT * FROM maint WHERE contract_id = ?');
                     $stmt->execute(array($filteredData['contract_id']));
@@ -82,7 +100,7 @@
                     
                 
                     $stmtEl = $db->prepare('SELECT * FROM elec WHERE contract_id = ?');
-                    $stmtEl->execute(array($client_fetched['contract_id']));
+                    $stmtEl->execute(array($filteredData['contract_id']));
                     $elecT = $stmtEl->fetch();
                     //echo $filteredData['contract_id'];
                     //echo '<pre>';
@@ -172,7 +190,16 @@
                              $s2 = $db->prepare('SELECT client_name FROM clients WHERE client_id = ?');
                              $s2->execute(array($unit['client_id']));
                              $f2 = $s2->fetch();
-                        echo '<tr><td>'  . $unit['unit_id'] .
+
+                             // ElecReading current 
+                             $prev_elec = $unit['prev_reading'];
+                             $cur_elec;
+                             if ($unit['current_reading'] == 0) {
+                                $cur_elec = $unit['prev_reading'];
+                             } else {
+                                 $cur_elec = $unit['current_reading'];
+                             }
+                        echo '<tr><td>'  . $unit['contract_id'] .
                              '</td><td>' . $unit_names .
                              
                              '</td><td>' . $reef_names .
@@ -180,7 +207,7 @@
                              '</td><td>' . $unit['contract_id'] .
                              '</td><td><b> ' . $unit['total_space'] . ' </b>فدان' . 
                              '</td><td><b> ' . $unit['balance']  . ' </b>جنية' . " <a class='btn btn-primary btn-sm' href='payment.php?action=payMaint&conid=" . $unit['contract_id'] . "'>  دفع الصيانة</a></td><td><b>"
-                             . $unit['prev_reading'] . '</b> || تاريخ ' . $unit['prev_reading_date'] . "<a class='btn btn-success btn-sm' href='payment.php?action=addCurrentElec&conid=" . $unit['contract_id'] . "'>   إضافة قرآءة جديدة</a>"  . "</td><td><b>"
+                             . $prev_elec . '</b> || تاريخ ' . $unit['prev_reading_date'] . '| حالية' . $cur_elec . "<a class='btn btn-success btn-sm' href='payment.php?action=addCurrentElec&conid=" . $unit['contract_id'] . "'>   إضافة قرآءة جديدة</a>"  . "</td><td><b>"
                              . $unit['elec_balance'] .  ' </b>جنية' . " <a class='btn btn-secondary btn-sm' href='payment.php?action=payElec&conid=" . $unit['contract_id'] . "'>  دفع الكهرباء</a>" . "</td></tr>";
 
                     } 
