@@ -53,6 +53,10 @@ if (isset($_SESSION['username'])) {
                         اسم القطعة
                     </th>
                     <th>
+                    مساحة القطعة
+                    
+                    </th>
+                    <th>
                         حذف أو تعديل
                     </th>
 
@@ -67,7 +71,10 @@ if (isset($_SESSION['username'])) {
                         $stmt->execute(array($row['reef_id']));
                         $reef = $stmt->fetch();
                         echo '<tr>';
-                            echo '<td>' . $row['unit_id'] .  '</td><td>' . $row['unit_name'] . '</td><td>' . $reef['reef_name'] .
+                            echo '<td>' . $row['unit_id'] .  '</td><td>' 
+                            . $row['unit_name'] . '</td><td>' 
+                            . $reef['reef_name'] . '</td><td>'
+                            . $row['space_f'] . 'فدان و' . $row['space_q'] . ' قيراط و' . $row['space_s']  . ' سهم ' .
                             '</td><td><a href="?action=Edit&id=' . $row['unit_id'] . '" class="btn btn-outline-info">تعديل</a><a href="?action=Delete&id=' . $row['unit_id'] . '" class="btn btn-danger confirm"> حذف</a></td>';
 
                         echo '</tr>';
@@ -125,11 +132,8 @@ if (isset($_SESSION['username'])) {
             <h1 class="page-title text-center"> إضافة قطعة جديد </h1>
             <form action="?action=Insert" method="POST">
                 <div class="row">
-                    <div class="form-group col-6">
-                        <label class="col-form-label col-4"> إسم القطعة</label>
-                        <input type="text" class="form-control col-8" name='unit_name' required  />
-                    </div>
-                    <div class="form-group col-6">
+                    
+                    <div class="form-group col-4">
                         <label class="col-form-label col-4"> إسم الريف</label>
                         <select class="custom-select" name="reef_id" required>
                             <option value='' selected>اختر ريف</option>
@@ -143,6 +147,28 @@ if (isset($_SESSION['username'])) {
                               ?>
                         </select>
                     </div>
+                    <div class="form-group col-4">
+                        <label class="col-form-label col-4"> إسم القطعة</label>
+                        <input type="text" class="form-control col-8" name='unit_name' required  />
+                    </div>
+                    <div class="form-group col-4 space">
+                        <label class="col-form-label col-3 spc-label"> المساحة </label>
+                        <div class="row">
+                            <div class="col">
+                                <label>فدان</label>
+                                <input id="space-f" type="number"  name="space-f" class="form-control col-9" required />
+                            </div>
+                            <div class="col">
+                                <label>قيراط</label>
+                                <input id="space-q" type="number" min="1" max="24" name="space-q" class="form-control col-9" required />
+                            </div>
+                            <div class="col">
+                                <label>سهم</label>
+                                <input id="space-s" type="number" min="1" max="24" name="space-s" class="form-control col-9"  />
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
                 
                 <div class="form-group">
@@ -165,11 +191,8 @@ if (isset($_SESSION['username'])) {
             <h1 class="page-title text-center"> تعديل بيانات قطعة </h1>
             <form action="?action=Update&id=<?php echo $id; ?>" method="POST">
                 <div class="row">
-                    <div class="form-group col-6">
-                        <label class="col-form-label col-4"> إسم القطعة</label>
-                        <input type="text" class="form-control col-8" name='unit_name' value="<?php echo $row['unit_name']; ?>" required  />
-                    </div>
-                    <div class="form-group col-6">
+                    
+                    <div class="form-group col-4">
                         <label class="col-form-label col-4"> إسم الشركة</label>
                         <select class="custom-select" required name="reef_id" required>
                         <?php $stmt = $db->prepare('SELECT * FROM reefs WHERE reef_id = ? LIMIT 1');
@@ -189,6 +212,30 @@ if (isset($_SESSION['username'])) {
                               ?>
                         </select>
                     </div>
+                    <div class="form-group col-4">
+                        <label class="col-form-label col-4"> إسم القطعة</label>
+                        <input type="text" class="form-control col-8" name='unit_name' value="<?php echo $row['unit_name']; ?>" required  />
+                    </div>
+                    <div class="form-group col-4 space">
+                        <label class="col-form-label col-3 spc-label"> المساحة </label>
+                        <div class="row">
+                            <div class="col">
+                                <label>فدان</label>
+                                <input id="space-f" type="number"  name="space-f" class="form-control col-9" value="<?php
+                                echo $row['space_f']; ?>" required />
+                            </div>
+                            <div class="col">
+                                <label>قيراط</label>
+                                <input id="space-q" type="number" min="1" max="24" name="space-q" class="form-control col-9" value="<?php
+                                echo $row['space_q']; ?>" required />
+                            </div>
+                            <div class="col">
+                                <label>سهم</label>
+                                <input id="space-s" type="number" min="1" max="24" name="space-s" class="form-control col-9" value="<?php
+                                echo $row['space_s']; ?>"  />
+                            </div>
+                        </div>
+                    </div>
                 </div>
             
                 <div class="form-group">
@@ -206,6 +253,9 @@ if (isset($_SESSION['username'])) {
                 $id = $_GET['id'];
                 $unit_name = $_POST['unit_name'];
                 $reef_id = $_POST['reef_id'];
+                $fdan = $_POST['space-f'];
+                $qirat = $_POST['space-q'];
+                $sahm = $_POST['space-s'];
 
                 $formErrors = array();
 
@@ -226,8 +276,9 @@ if (isset($_SESSION['username'])) {
                   . '</div>';
                 }      
                 if (empty($formErrors)) {
-                    $stmt = $db->prepare('UPDATE units SET unit_name = ? , reef_id = ? WHERE unit_id = '. $id);
-                    $stmt->execute(array($unit_name,$reef_id));
+                    $stmt = $db->prepare('UPDATE units SET unit_name = ? , reef_id = ? , space_f = ?
+                    , space_q = ? , space_s = ? WHERE unit_id = '. $id);
+                    $stmt->execute(array($unit_name,$reef_id , $fdan, $qirat, $sahm));
                     echo '<div class="alert alert-success" role="alret"> تم حفظ بيانات' . $stmt->rowCount() . 'قطعة جديد</div>';
                     echo '<a href="units.php?page=1" class=" btn btn-group-vertical"> رجوع الي صفحة الأراضي</a>';
                 }
@@ -244,7 +295,14 @@ if (isset($_SESSION['username'])) {
                 $pageTitle = "إضافة قطعة جديد";
                 $unit_name = $_POST['unit_name'];
                 $reef_id = $_POST['reef_id'];
-               
+
+                
+                
+                $fdan = $_POST['space-f'];
+                $qirat = $_POST['space-q'];
+                $sahm = $_POST['space-s'];
+
+                
                 $formErrors = array();
 
                 if(empty($unit_name)) {
@@ -264,10 +322,13 @@ if (isset($_SESSION['username'])) {
                   . '</div>';
                 }      
                 if (empty($formErrors)) {
-                    $stmt = $db->prepare('INSERT INTO units (unit_name,reef_id) values (:unit_name , :reef_id)');
+                    $stmt = $db->prepare('INSERT INTO units (unit_name,reef_id,space_f,space_q,space_s) values (:unit_name , :reef_id,:spc_f, :spc_q , :spc_s)');
                     $stmt->execute(array(
                         ':unit_name' => $unit_name,
-                        ':reef_id' => $reef_id
+                        ':reef_id' => $reef_id,
+                        ':spc_f'    => $fdan,
+                        ':spc_q'    => $qirat,
+                        ':spc_s'    => $sahm
                         ));
                     echo '<h1 class="page-title text-center"> تم الحفظ </h1>';
                     echo '<div class="alert alert-success" role="alret"> تم حفظ بيانات' . $stmt->rowCount() . 'قطعة جديد</div>';
@@ -296,7 +357,7 @@ if (isset($_SESSION['username'])) {
         }
         // Insert Page End ====================================================================================================================
         echo '</div>';
-    
+    include $tbl . 'footer.php';
 } else {
     header('Location: index.php');
     exit();
