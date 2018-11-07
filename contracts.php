@@ -279,8 +279,8 @@ if (isset($_SESSION['username'])) {
                               ?>
                         </select>
                     </div>
-                    <div class="form-group col-6">
-                        <label class="col-form-label col-4"> نوع العقد</label>
+                    <div class="form-group col-3">
+                        <label class="col-form-label col-6"> نوع العقد</label>
                         <select class="custom-select" name="contract_kind">
                             <option value="" selected>نوع العقد</option>
                         
@@ -293,25 +293,30 @@ if (isset($_SESSION['username'])) {
                              
                         </select>
                     </div>
+                    <div class="form-group col-3">
+                        <label class="col-form-label col-6"> تاريخ العقد</label>
+                        
+                        <input type="date" class="form-control col-8" name="contract_date" />
+                    </div>
                 </div>
                 <div class="row">
                     <div class="form-group col-4">
                         <label class="col-form-label col-4"> المساحة</label>
-                        <select class="custom-select space" name="space">
-                              <option value=""> اختر المساحة </option>
+                        <select class="custom-select" id="space"  name="space">
+                              <option value=""> مساحة القطعة عند اخيارها </option>
                             
                         </select>
                     </div>
-                    <div class="form-group col-4">
+                    <div class="form-group col-3">
                         <label class="col-form-label col-6"> رصيد الصيانة</label>
                         
                         <input type="text" class="form-control col-8" name="balance" />
                     </div>
                     
                     <div class="form-group col-4">
-                        <label class="col-form-label col-4"> التاريخ</label>
+                        <label class="col-form-label col-8"> تاريخ بداية الصيانة</label>
                         
-                        <input type="date" class="form-control col-8" name="date" />
+                        <input type="date" class="form-control col-8" name="maint_date" />
                     </div>
                 </div>
                 <div class="row">
@@ -466,7 +471,7 @@ if (isset($_SESSION['username'])) {
                             </div>
                             <div class="form-group col-2">
                                 <label class="col-form-label col-4"> مساحة القطعة</label>
-                                <select class="custom-select space"  name="space">
+                                <select class="custom-select" id="space"  name="space">
                                     
                                 </select>
                             </div>
@@ -736,16 +741,16 @@ if (isset($_SESSION['username'])) {
                 }
                
                 // maintainance table prop
-                $start_date = $date;
+                $start_d = $date;
                 $balance = $_POST['balance'];
-                $end_date = date("Y-m-d", strtotime(date("Y-m-d", strtotime($start_date)). "next day"));
+                $end_d = date("Y-m-d", strtotime(date("Y-m-d", strtotime($start_d)). "next day"));
                 
                 
                 if(strlen($balance) == 0) {
                     $formErrors[] = 'رصيد الصيانة لا يمكن أن يكون فارغا ';
                 }
                 
-                echo $end_date;
+                echo $end_d;
 
                 // elec table prop
                 $elec_balance = $_POST['elec_balance'];
@@ -811,7 +816,7 @@ if (isset($_SESSION['username'])) {
                     $stmtMaint->execute(array(
                         ':blc'  => $balance,
                         ':sdt'  => $date,
-                        ':edt'  => $end_date,
+                        ':edt'  => $end_d,
                         ':coid' => $cid
                     ));
 
@@ -848,7 +853,8 @@ if (isset($_SESSION['username'])) {
                 $client_id = $_POST['client_id'];
                 $contract_kind = $_POST['contract_kind'];
                 $space = $_POST['space'];
-                $date = $_POST['date'];
+                $contract_date = $_POST['contract_date'];
+                $maint_date = $_POST['maint_date'];
                 if(strlen($description) == 0) {
                     $formErrors[] = 'وصف العقد لا يمكن أن يكون فارغا ';
                 }
@@ -858,24 +864,22 @@ if (isset($_SESSION['username'])) {
                 if(strlen($contract_kind) == 0) {
                     $formErrors[] = 'نوع العقد لا يمكن أن يكون فارغا ';
                 }
-                if(strlen($date) == 0) {
+                if(strlen($contract_date) == 0) {
                     $formErrors[] = 'تاريخ العقد لا يمكن أن يكون فارغا ';
                 }
-                if(strlen($space) == 0) {
-                    $formErrors[] = 'مساحة العقد لا يمكن أن يكون فارغا ';
-                }
+                
                
                 // maintainance table prop
-                $start_date = $date;
+                $start_d = $maint_date;
                 $balance = $_POST['balance'];
-                $end_date = date("Y-m-d", strtotime(date("Y-m-d", strtotime($start_date)). "next month"));
+                $end_d = date("Y-m-d", strtotime(date("Y-m-d", strtotime($start_d)). "next month"));
                 
                 
                 if(strlen($balance) == 0) {
                     $formErrors[] = 'رصيد الصيانة لا يمكن أن يكون فارغا ';
                 }
                 
-                echo $end_date;
+                echo $end_d;
 
                 // elec table prop
                 $elec_balance = $_POST['elec_balance'];
@@ -921,7 +925,7 @@ if (isset($_SESSION['username'])) {
                         ':cid' => $client_id,
                         ':conknd' => $contract_kind,
                         ':tsp' => $total_space,
-                        ':dt' => $date
+                        ':dt' => $contract_date
                     ));
                     
                     $cont_id = $db->lastInsertId();
@@ -933,15 +937,16 @@ if (isset($_SESSION['username'])) {
                         ':u' => $unit_id,
                         ':s' => $space
                     ));
-
+                    echo $start_d;
                     // Insert Maintainance table
                     $stmtMaint = $db->prepare('INSERT INTO maint (contract_id ,balance , start_date, end_date) 
                     VALUES (:coid, :blc , :sdt, :edt)');
+                    
                     $stmtMaint->execute(array(
                         ':coid' => $cont_id,
                         ':blc'  => $balance,
-                        ':sdt'  => $date,
-                        ':edt'  => $end_date
+                        ':sdt'  => $start_d,
+                        ':edt'  => $end_d
                     ));
 
                     $stmtElec = $db->prepare('INSERT INTO elec 
