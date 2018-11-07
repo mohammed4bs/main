@@ -38,20 +38,11 @@ if (isset($_SESSION['username'])) {
                 $stmt = $db->prepare('SELECT * FROM contract_units WHERE unit_id = ?');
                 $stmt->execute(array($unit['unit_id']));
                 $count = $stmt->rowCount();
-                $un = $stmt->fetchAll();
+                $un = $stmt->fetch();
 
                 if($count > 0) { 
-                    $sp;
-                    foreach($un as $u) {
-                        $sp += $u['unit_space'];
-                    }
-                    if ($sp > 0.5) {
-                        echo '<option disabled  value="'.$unit['unit_id'].'">'.$unit['unit_name'].'</option>';
+                    echo '<option disabled  value="'.$unit['unit_id'].'">'.$unit['unit_name'].'</option>';
                       
-                    } else {
-                        echo '<option  value="'.$unit['unit_id'].'">'.$unit['unit_name'].'</option>';    
-                    }
-                    
                 } else {
                     echo '<option  value="'.$unit['unit_id'].'">'.$unit['unit_name'].'</option>';
                 }
@@ -65,37 +56,31 @@ if (isset($_SESSION['username'])) {
         
                 $unit_id = $_POST['unit_id'];
              
-            
-                $stmt = $db->prepare('SELECT * FROM contract_units WHERE unit_id = ?');
+                $stmt = $db->prepare('SELECT space_f, space_q, space_s FROM units WHERE unit_id = ?');
                 $stmt->execute(array($unit_id));
+                $sp = $stmt->fetch();
                 $count = $stmt->rowCount();
-                $un = $stmt->fetchAll();
+                if ($count > 0 ) {
+                    $fdan = $sp['space_f'];
+                    $qirat = $sp['space_q'];
+                    $sahm = $sp['space_s'];
+                    // Convert sahm to qirat
+                    $value = $sahm / 24;
+                    // add sahm to qirat
+                    $value = $value + $qirat;
+                    // convert the sum to fdan
+                    $value = $value / 24;
+                    // add sum to fdan
+                    $value = $value + $fdan; 
+
+                    echo '<option  value="'.  $value .'">' .$fdan . '  فدان و ' . $qirat . ' قيراط و' .
+                    $sahm . ' سهم ' . '</option>';
+                }
                 
 
-                if($count > 0) { 
-                    
-                    $sp;
-                    foreach($un as $u) {
-                        $sp += $u['unit_space'];
-                    }
-                    echo $sp;
-                    if ($sp == 0) {
-                        echo '<option> اختر المساحة </option>';
-                        //echo '<option> echo $sp; </option>';
-                        echo '<option value="0.5">نصف فدان</option><option value="1"> فدان</option>';
-                    } elseif ($sp == 0.5) {
-                        echo '<option> اختر المساحة </option>';
-                        echo '<option value="0.5">نصف فدان</option>';    
-                    } else {
-                        echo '<option>  المساحة بالكامل محجوزة </option>';
-                    }
-                    
-                } else {
-                    echo '<option> اختر المساحة </option>';
-                    echo '<option value="0.5">نصف فدان</option><option value="1"> فدان</option>';
-                }
-            }
-    
+                
+            
+    }
 } else {
     echo 'Worng';
 }
