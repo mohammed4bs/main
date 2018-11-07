@@ -1,6 +1,5 @@
 <?php
-    
-    $fee = 600;
+$stmt = 'ALTER TABLE maint MODIFY maint_fee INT DEFAULT 850';
 
 
 
