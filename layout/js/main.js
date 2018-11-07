@@ -50,13 +50,14 @@ $(function () {
                 url: 'ajaxData.php',
                 data: 'unit_id='+unitID,
                 success:function(html) {
-                    $('.space').html(html);
+                    $('#space').html(html);
                 }
             });        
         }else {
-            $('.space').html('<option value="">اختر قطعة أولا</option>'); 
+            $('#space').html('<اختر قطعة أولا'); 
         }
     });
+  
 });
 
 
