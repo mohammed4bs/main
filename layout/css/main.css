@@ -31,9 +31,49 @@
     background-color: black;
     color: #fff;
 }
+.navbar-expand-lg , .table .thead-dark th {
+    background-color: #474787;
+    color:#fff;
+}
 
+.navbar-light .navbar-nav .nav-link , .navbar-light .navbar-nav .show > .nav-link, 
+.navbar-light .navbar-nav .active > .nav-link, 
+.navbar-light .navbar-nav .nav-link.show, 
+.navbar-light .navbar-nav .nav-link.active, .navbar-light .navbar-brand  { 
+    color:#fff;
+}
 /* ================================== Dashboard ====================================== */
 
 .main-items {
     margin-top: 50px;
+}
+
+
+/* ================================== Report ====================================== */
+
+.customer {
+    background-color: #fee;
+    border-radius: 5px;
+    padding: 30px;
+    border-left: 5px solid #fff;
+    border-bottom: 5px solid #fff;
+}
+
+.hr-b {
+    width: 50px;
+    text-align: right;
+}
+
+
+
+.space {
+    background-color: #fee;
+    padding: 10px 20px 30px 10px;
+    margin-right: -20px;
+    border-radius: 5px;
+}
+
+.spc-label{
+    font-weight: bold;
+    margin-right: -25px;
 }
